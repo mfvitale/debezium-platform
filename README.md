@@ -1,6 +1,5 @@
 # Debezium Management Platform 
 
-## Debezium Management Platform
 Debezium Management Platform (Debezium Orchestra) aims to provide means to simplify the deployment of 
 Debezium to various environments in highly opinionated manner. The goal is not to provide 
 total control over environment specific configuration. To achieve this goal the platform uses
