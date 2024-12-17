@@ -198,6 +198,10 @@ const Pipelines: React.FunctionComponent = () => {
     [debouncedSearch]
   );
 
+  const onPipelineClick = (id: number) => () => {
+    navigateTo(`/pipeline/${id}/overview`);
+  }
+
   const modalToggle = (toggleValue: boolean) => {
     setDeleteInstanceName("");
     setIsOpen(toggleValue);
@@ -367,7 +371,11 @@ const Pipelines: React.FunctionComponent = () => {
                               : pipelinesList
                             ).map((instance: Pipeline) => (
                               <Tr key={instance.id}>
-                                <Td dataLabel="Name">{instance.name}</Td>
+                                <Td dataLabel="Name">
+                                  <Button variant="link" isInline onClick={onPipelineClick(instance.id)}>
+                                    {instance.name}
+                                  </Button>
+                                </Td>
                                 <SourceField pipelineSource={instance.source} />
                                 <DestinationField
                                   pipelineDestination={instance.destination}

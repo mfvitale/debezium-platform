@@ -1,0 +1,50 @@
+name: UI Test
+on:
+  push:
+    paths:
+      - "debezium-platform-stage/**"
+    branches:
+      - main
+  pull_request:
+    paths:
+      - "debezium-platform-stage/**"
+    branches:
+      - main
+jobs:
+  Tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: debezium-platform-stage
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      
+      - name: Cache Yarn dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.yarn/cache
+            debezium-platform-stage/node_modules
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-yarn-${{ hashFiles('debezium-platform-stage/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-yarn-
+      
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      
+      # Uncomment if you want to run linting
+      # - name: Run lint
+      #   id: lint
+      #   run: yarn lint
+      
+      - name: Run tests
+        run: yarn test
