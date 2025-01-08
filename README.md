@@ -45,6 +45,9 @@ export DEBEZIUM_PLATFORM_DOMAIN=platform.debezium.io
 ./examples/update_hosts.sh
 ```
 
+> **_NOTE:_**
+If you are using minikube on Mac, you need also to run the `minikube tunnel` command. For more details see [this](https://minikube.sigs.k8s.io/docs/drivers/docker/#known-issues) and [this](https://stackoverflow.com/questions/70961901/ingress-with-minikube-working-differently-on-mac-vs-ubuntu-when-to-set-etc-host).
+
 Create a dedicated namespace
 
 ```shell
@@ -68,7 +71,7 @@ and a kafka cluster, used as destination in our example pipeline.
 ```shell
 # Deploy the source database
 
-kubectl create -f examples/compose-kind-kafka/k8s/database/001_postgresql.yml
+kubectl create -f examples/k8s/database/001_postgresql.yml
 ```
 
 Install the Strimzi operator 
@@ -82,7 +85,7 @@ helm install strimzi-operator strimzi/strimzi-kafka-operator --version 0.44.0 --
 ```shell
 # Deploy the kafka cluster
 
-kubectl create -f examples/compose-kind-kafka/k8s/kafka/001_kafka.yml
+kubectl create -f examples/k8s/kafka/001_kafka.yml
 ```
 
 ```shell
