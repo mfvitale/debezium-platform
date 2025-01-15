@@ -49,6 +49,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { editPut, fetchDataTypeTwo, TransformData } from "src/apis";
 import { API_URL } from "@utils/constants";
 import { useNotification } from "@appContext/AppNotificationContext";
+import { isEmpty } from "lodash";
 
 export interface IEditTransformsProps {
   onSelection?: (selection: TransformData) => void;
@@ -300,6 +301,8 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
   const [initialValues, setInitialValues] = useState<Record<string, string>>(
     {}
   );
+
+  console.log("initialValues", initialValues);
 
   React.useEffect(() => {
     const fetchDestinations = async () => {
@@ -695,8 +698,8 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
                                           undefined
                                         );
                                       }}
-                                      value={
-                                        getValue(
+                                      defaultValue={
+                                        !isEmpty(initialValues) && getValue(
                                           `debezium.transforms.${transformName}.${key}`
                                         ) || property?.defaultValue
                                       }
@@ -774,14 +777,14 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
                       }
                     }}
                   >
-                    Create transform
+                    Save changes
                   </Button>
 
                   <Button
                     variant="link"
                     onClick={() => navigateTo("/transform")}
                   >
-                    Back
+                    Cancel
                   </Button>
                 </ActionGroup>
               </PageSection>
