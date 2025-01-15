@@ -302,8 +302,6 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
     {}
   );
 
-  console.log("initialValues", initialValues);
-
   React.useEffect(() => {
     const fetchDestinations = async () => {
       setIsFetchLoading(true);
@@ -369,7 +367,6 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
       );
 
       const updatedConfig = { ...oldConfig, ...newValues };
-      console.log("initialValues", initialValues);
 
       const payload = {
         description: description,
@@ -699,9 +696,11 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
                                         );
                                       }}
                                       defaultValue={
-                                        !isEmpty(initialValues) && getValue(
-                                          `debezium.transforms.${transformName}.${key}`
-                                        ) || property?.defaultValue
+                                        (!isEmpty(initialValues) &&
+                                          getValue(
+                                            `debezium.transforms.${transformName}.${key}`
+                                          )) ||
+                                        property?.defaultValue
                                       }
                                       validated={
                                         errors[
