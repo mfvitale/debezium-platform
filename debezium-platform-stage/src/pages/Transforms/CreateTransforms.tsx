@@ -722,7 +722,7 @@ const CreateTransforms: React.FunctionComponent<ICreateTransformsProps> = ({
                 >
                   Create transform
                 </Button>
-                {modelLoaded && (
+                {!modelLoaded && (
                   <Button
                     variant="link"
                     onClick={() => navigateTo("/transform")}
