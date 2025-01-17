@@ -1,0 +1,19 @@
+{
+  "name": "Debezium marker",
+  "description": "Just add a static filed to payload",
+  "type": "org.apache.kafka.connect.transforms.InsertField$Value",
+  "schema": "string",
+  "vaults": [
+  ],
+  "config": {
+    "static.field": "marker",
+    "static.value": "debezium"
+  },
+  "predicate": {
+    "type": "org.apache.kafka.connect.transforms.predicates.TopicNameMatches",
+    "config": {
+      "pattern": "inventory.inventory.products"
+    },
+    "negate": false
+  }
+}

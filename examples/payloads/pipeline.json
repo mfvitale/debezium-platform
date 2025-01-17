@@ -9,5 +9,11 @@
     "id": 1,
     "name": "test-destination"
   },
+  "transforms": [
+    {
+      "name": "AddMarker",
+      "id": 1
+    }
+  ],
   "logLevel": "debug"
 }
