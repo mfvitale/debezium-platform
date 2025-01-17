@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.Dependent;
 
@@ -16,8 +17,12 @@ import io.debezium.operator.api.model.ConfigProperties;
 import io.debezium.operator.api.model.DebeziumServer;
 import io.debezium.operator.api.model.DebeziumServerBuilder;
 import io.debezium.operator.api.model.DebeziumServerSpecBuilder;
+import io.debezium.operator.api.model.Predicate;
+import io.debezium.operator.api.model.PredicateBuilder;
 import io.debezium.operator.api.model.QuarkusBuilder;
 import io.debezium.operator.api.model.SinkBuilder;
+import io.debezium.operator.api.model.Transformation;
+import io.debezium.operator.api.model.TransformationBuilder;
 import io.debezium.operator.api.model.runtime.RuntimeBuilder;
 import io.debezium.operator.api.model.runtime.metrics.JmxExporterBuilder;
 import io.debezium.operator.api.model.runtime.metrics.MetricsBuilder;
@@ -28,6 +33,7 @@ import io.debezium.operator.api.model.source.SchemaHistoryBuilder;
 import io.debezium.operator.api.model.source.SourceBuilder;
 import io.debezium.operator.api.model.source.storage.CustomStoreBuilder;
 import io.debezium.platform.config.PipelineConfigGroup;
+import io.debezium.platform.domain.views.Transform;
 import io.debezium.platform.domain.views.flat.PipelineFlat;
 import io.debezium.platform.environment.PipelineController;
 import io.debezium.platform.environment.logs.LogReader;
@@ -43,6 +49,8 @@ public class OperatorPipelineController implements PipelineController {
 
     public static final String LABEL_DBZ_CONDUCTOR_ID = "debezium.io/conductor-id";
     private static final List<String> RESOLVABLE_CONFIGS = List.of("jdbc.schema.history.table.name", "jdbc.offset.table.name");
+    private static final String PREDICATE_PREFIX = "p";
+    private static final String PREDICATE_ALIAS_FORMAT = "%s%s";
 
     private final KubernetesClient k8s;
     private final PipelineConfigGroup pipelineConfigGroup;
@@ -97,6 +105,15 @@ public class OperatorPipelineController implements PipelineController {
                 .withConfig(sinkConfig)
                 .build();
 
+        List<Transformation> transformations = pipeline.getTransforms().stream()
+                .map(this::buildTransformation)
+                .toList();
+
+        Map<String, Predicate> predicates = pipeline.getTransforms().stream()
+                .collect(Collectors.toMap(
+                        this::getPredicateName,
+                        this::buildPredicate));
+
         // Create DS resource
         var ds = new DebeziumServerBuilder()
                 .withMetadata(new ObjectMetaBuilder()
@@ -108,11 +125,42 @@ public class OperatorPipelineController implements PipelineController {
                         .withRuntime(dsRuntime)
                         .withSource(dsSource)
                         .withSink(dsSink)
+                        .withTransforms(transformations)
+                        .withPredicates(predicates)
                         .build())
                 .build();
 
         // apply to server
         k8s.resource(ds).serverSideApply();
+    }
+
+    private Predicate buildPredicate(Transform transform) {
+
+        var predicateConfig = new ConfigProperties();
+        predicateConfig.setAllProps(transform.getPredicate().getConfig());
+
+        return new PredicateBuilder()
+                .withType(transform.getPredicate().getType())
+                .withConfig(predicateConfig)
+                .build();
+    }
+
+    private Transformation buildTransformation(Transform transform) {
+
+        var transformConfig = new ConfigProperties();
+        transformConfig.setAllProps(transform.getConfig());
+
+        return new TransformationBuilder()
+                .withType(transform.getType())
+                .withConfig(transformConfig)
+                .withPredicate(getPredicateName(transform))
+                .withNegate(transform.getPredicate().isNegate())
+                .build();
+
+    }
+
+    private String getPredicateName(Transform transform) {
+        return String.format(PREDICATE_ALIAS_FORMAT, PREDICATE_PREFIX, transform.getId());
     }
 
     private SchemaHistory getSchemaHistory(PipelineFlat pipeline) {
