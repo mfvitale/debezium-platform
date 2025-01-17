@@ -5,20 +5,30 @@
  */
 package io.debezium.platform.domain.views;
 
+import java.util.Map;
+
 import com.blazebit.persistence.view.CreatableEntityView;
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.MappingSingular;
 import com.blazebit.persistence.view.UpdatableEntityView;
-import com.blazebit.persistence.view.UpdatableMapping;
 
 import io.debezium.platform.data.model.TransformEntity;
 
-@EntityView(TransformEntity.class)
+@EntityView(TransformEntity.Predicate.class)
 @CreatableEntityView
 @UpdatableEntityView
-public interface Transform extends PipelineComponent {
+public interface Predicate {
 
-    @UpdatableMapping
-    Predicate getPredicate();
+    String getType();
 
-    void setPredicate(Predicate predicate);
+    void setType(String type);
+
+    @MappingSingular
+    Map<String, Object> getConfig();
+
+    void setConfig(Map<String, Object> config);
+
+    boolean isNegate();
+
+    void setNegate(boolean negate);
 }

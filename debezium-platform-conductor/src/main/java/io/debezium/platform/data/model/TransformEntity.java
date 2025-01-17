@@ -9,7 +9,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -46,4 +50,28 @@ public class TransformEntity {
     private Set<VaultEntity> vaults = new HashSet<>();
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> config;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "type", column = @Column(name = "predicate_type")),
+            @AttributeOverride(name = "config", column = @Column(name = "predicate_config")),
+            @AttributeOverride(name = "negate", column = @Column(name = "predicate_negate")),
+    })
+    private Predicate predicate;
+
+    @Embeddable
+    @Getter
+    @Setter
+    public static class Predicate {
+
+        public Predicate() {
+        }
+
+        private String type;
+
+        @JdbcTypeCode(SqlTypes.JSON)
+        private Map<String, Object> config;
+
+        private boolean negate;
+    }
 }
