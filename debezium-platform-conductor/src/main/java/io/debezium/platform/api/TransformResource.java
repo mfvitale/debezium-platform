@@ -50,7 +50,7 @@ public class TransformResource {
         this.transformService = transformService;
     }
 
-    @Operation(summary = "Returns all available vaults")
+    @Operation(summary = "Returns all available transformations")
     @APIResponse(responseCode = "200", content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = Transform.class, required = true, type = SchemaType.ARRAY)))
     @GET
     public Response get() {
