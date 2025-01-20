@@ -13,7 +13,7 @@ import { Destination, fetchData } from "../../apis/apis";
 // import { CreateDestinationForm } from "../../pages/Destination/CreateDestinationForm";
 import { useQuery } from "react-query";
 import { API_URL } from "../../utils/constants";
-import SourceDestinationSelectionList from "../../components/SourceDestinationSelectionList";
+import SourceDestinationSelectionList from "../SourceDestinationSelectionList";
 import { CatalogGrid } from "@components/CatalogGrid";
 import { CreateDestination } from "@destinationPage/CreateDestination";
 

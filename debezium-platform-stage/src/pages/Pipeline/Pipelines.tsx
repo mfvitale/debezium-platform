@@ -121,12 +121,10 @@ const Pipelines: React.FunctionComponent = () => {
 
   const downloadLogFile = async (pipelineId: string, pipelineName: string) => {
     setIsLogLoading(true);
-
     // Fetch the file as a Blob
     const response = await fetchFile(
       `${API_URL}/api/pipelines/${pipelineId}/logs`
     );
-
     if ("error" in response) {
       addNotification(
         "danger",
@@ -136,14 +134,12 @@ const Pipelines: React.FunctionComponent = () => {
     } else {
       // Create a URL for the Blob
       const url = window.URL.createObjectURL(response);
-
       // Create a link element and click it to trigger the download
       const a = document.createElement("a");
       a.href = url;
       a.download = "pipeline.log";
       document.body.appendChild(a);
       a.click();
-
       // Clean up
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);

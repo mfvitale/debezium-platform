@@ -11,17 +11,14 @@ import ReactFlow, {
   Connection,
   Background,
 } from "reactflow";
-
 import DataNode from "./DataNode";
-
 import { MdLogin, MdLogout } from "react-icons/md";
 import DataNodeSelector from "./DataSelectorNode";
 import "./CreationFlow.css";
-import CustomEdgeDestination from "./CustomEdgeDestination";
-import CustomEdgeSource from "./CustomEdgeSource";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 import DebeziumNode from "./DebeziumNode";
+import UnifiedCustomEdge from "./UnifiedCustomEdge";
 
 const nodeTypes = {
   dataNodeSelector: DataNodeSelector,
@@ -30,8 +27,7 @@ const nodeTypes = {
 };
 
 const edgeTypes = {
-  customEdgeSource: CustomEdgeSource,
-  customEdgeDestination: CustomEdgeDestination,
+  unifiedCustomEdge: UnifiedCustomEdge,
 };
 
 const proOptions = { hideAttribution: true };
@@ -65,7 +61,7 @@ const WelcomeFlow: React.FC<WelcomeFlowProps> = () => {
         sourcePosition: "right",
         targetPosition: "left",
       },
-      position: { x: 330, y: 130 },
+      position: { x: 330, y: 147 },
       targetPosition: "left",
       type: "addTransformation",
       draggable: false,
@@ -96,17 +92,12 @@ const WelcomeFlow: React.FC<WelcomeFlowProps> = () => {
 
   const initialEdges = [
     {
-      id: "source-add_transformation",
+      id: "complete-flow-path",
       source: "source",
-      target: "add_transformation",
-      type: "customEdgeSource",
-      sourceHandle: "a",
-    },
-    {
-      id: "add_transformation-destination",
-      source: "add_transformation",
       target: "destination",
-      type: "customEdgeDestination",
+      type: "unifiedCustomEdge",
+      data: { throughNode: "add_transformation" },
+      sourceHandle: "a",
     },
   ];
 
@@ -155,12 +146,9 @@ const WelcomeFlow: React.FC<WelcomeFlowProps> = () => {
         />
         <svg>
           <defs>
-            <linearGradient id="edge-gradient-source">
+            <linearGradient id="edge-gradient-unified">
               <stop offset="0%" stopColor="#a5c82d" />
-              <stop offset="100%" stopColor="#7fc5a5" />
-            </linearGradient>
-            <linearGradient id="edge-gradient-destination">
-              <stop offset="0%" stopColor="#7fc5a5" />
+              <stop offset="50%" stopColor="#7fc5a5" />
               <stop offset="100%" stopColor="#58b2da" />
             </linearGradient>
           </defs>

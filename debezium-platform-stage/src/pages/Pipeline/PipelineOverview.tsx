@@ -1,5 +1,5 @@
 import ConnectorImage from "@components/ComponentImage";
-import CompositionFlow from "@components/dataFlow/CompositionFlow";
+import CompositionFlow from "@components/pipelineDesigner/CompositionFlow";
 import {
   ChartDonutUtilization,
   Chart,

@@ -26,9 +26,8 @@ import {
 import { atom, useAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
 import "./PipelineDesigner.css";
-// import CreationFlow from "../../components/dataFlow/CreationFlow";
 import { Destination, Source, Transform } from "../../apis/apis";
-import CreationFlowTransform from "@components/dataFlow/CreationFlowTransform";
+import CreationFlowTransform from "@components/pipelineDesigner/CreationFlowTransform";
 import {
   DragDropSort,
   DragDropSortDragEndEvent,
