@@ -12,7 +12,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { fetchData, Source } from "../../apis/apis";
 import { API_URL } from "../../utils/constants";
 import { useQuery } from "react-query";
-import SourceDestinationSelectionList from "../../components/SourceDestinationSelectionList";
+import SourceDestinationSelectionList from "../SourceDestinationSelectionList";
 import { CatalogGrid } from "@components/CatalogGrid";
 import { CreateSource } from "@sourcePage/CreateSource";
 

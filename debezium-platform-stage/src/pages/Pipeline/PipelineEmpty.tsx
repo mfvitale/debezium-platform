@@ -13,7 +13,7 @@ import {
 } from "@patternfly/react-core";
 
 import { useNavigate } from "react-router-dom";
-import WelcomeFlow from "@components/dataFlow/WelcomeFlow";
+import WelcomeFlow from "@components/pipelineDesigner/WelcomeFlow";
 
 const PipelineEmpty: React.FunctionComponent = () => {
   const navigate = useNavigate();
@@ -27,7 +27,6 @@ const PipelineEmpty: React.FunctionComponent = () => {
       <EmptyState
         titleText="Welcome to Stage"
         headingLevel="h1"
-        // variant={EmptyStateVariant.full}
         isFullHeight
       >
         <EmptyStateBody>
@@ -38,8 +37,8 @@ const PipelineEmpty: React.FunctionComponent = () => {
           </Content>
           <Content component={ContentVariants.small}>
             Add a pipeline to stream change event from a pipeline source
-            database. To create a pipeline, you can select a already configured
-            or add a new source and a destination.
+            database. To create a pipeline, you can select an already configured
+            or add a new source and destination.
           </Content>
 
           <Card style={{ height: "300px" }} isPlain>
@@ -59,10 +58,13 @@ const PipelineEmpty: React.FunctionComponent = () => {
           </EmptyStateActions>
           <EmptyStateActions>
             <Button variant="link" onClick={() => navigateTo("/source")}>
-              Go to source
+              Source
+            </Button>
+            <Button variant="link" onClick={() => navigateTo("/transform")}>
+              Transform
             </Button>
             <Button variant="link" onClick={() => navigateTo("/destination")}>
-              Go to Destination
+              Destination
             </Button>
           </EmptyStateActions>
         </EmptyStateFooter>

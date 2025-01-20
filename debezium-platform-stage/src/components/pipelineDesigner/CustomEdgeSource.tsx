@@ -1,5 +1,4 @@
 import React from "react";
-
 import { EdgeProps, getBezierPath } from "reactflow";
 import "./CustomEdgeSource.css";
 import { BrandColors } from "@utils/constants";
