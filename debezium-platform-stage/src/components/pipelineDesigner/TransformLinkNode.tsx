@@ -8,7 +8,7 @@ import {
 import { Handle, Position } from "reactflow";
 import "./TransformLinkNode.css";
 
-import { OptimizeIcon } from "@patternfly/react-icons";
+import { AutomationIcon, DataProcessorIcon } from "@patternfly/react-icons";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 
@@ -35,7 +35,24 @@ const TransformLinkNode: React.FC<TransformLinkNodeProps> = ({ data }) => {
           }
         >
           <Handle type="target" id="smt-input" position={data.sourcePosition} />
-          <Card ouiaId="BasicCard" isCompact isPlain>
+          <Card
+            ouiaId="BasicCard"
+            isCompact
+            isPlain
+            style={{ position: "relative" }}
+          >
+            
+            <div
+              style={{
+                position: "absolute",
+                top: -3,
+                right: 6, 
+                zIndex: 1, 
+              }}
+            >
+              <AutomationIcon style={{ fontSize: 10 }} />
+            </div>
+
             <CardBody
               style={{
                 paddingTop: 8,
@@ -46,14 +63,14 @@ const TransformLinkNode: React.FC<TransformLinkNodeProps> = ({ data }) => {
             >
               <Bullseye>
                 <div>
-                  <OptimizeIcon style={{ fontSize: 15 }} />
+                  <DataProcessorIcon style={{ fontSize: 15 }} />
                 </div>
               </Bullseye>
             </CardBody>
             <CardFooter
               style={{ paddingLeft: 10, paddingRight: 10, paddingBottom: 5 }}
             >
-                <Content
+              <Content
                 type="p"
                 style={{
                   fontSize: "8px",
@@ -63,11 +80,12 @@ const TransformLinkNode: React.FC<TransformLinkNodeProps> = ({ data }) => {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                 }}
-                >
+              >
                 {data.label}
-                </Content>
+              </Content>
             </CardFooter>
           </Card>
+
           <Handle
             type="source"
             id="smt-output"

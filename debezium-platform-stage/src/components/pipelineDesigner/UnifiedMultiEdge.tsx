@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { EdgeProps, getStraightPath } from "reactflow";
+import { EdgeProps, getBezierPath } from "reactflow";
 import "./UnifiedCustomEdge.css";
 
 interface UnifiedMultiEdgeProps extends EdgeProps {
@@ -20,25 +20,25 @@ const UnifiedMultiEdge: React.FC<UnifiedMultiEdgeProps> = ({
 }) => {
   const midY = sourceY - 1; // Slightly above the direct line
 
-  const firstTransformX = sourceX + 220;
+  const firstTransformX = sourceX + 200;
   const lastTransformX = targetX - 220;
 
   // Create a combined path through all three points
-  const firstPath = getStraightPath({
+  const firstPath = getBezierPath({
     sourceX,
     sourceY,
     targetX: firstTransformX,
     targetY: midY,
   });
 
-  const middlePath = getStraightPath({
+  const middlePath = getBezierPath({
     sourceX: firstTransformX,
     sourceY: midY,
     targetX: lastTransformX,
     targetY: midY,
   });
 
-  const secondPath = getStraightPath({
+  const secondPath = getBezierPath({
     sourceX: lastTransformX,
     sourceY: midY,
     targetX,

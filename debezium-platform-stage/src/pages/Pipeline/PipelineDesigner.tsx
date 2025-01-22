@@ -34,6 +34,7 @@ import {
   DraggableObject,
 } from "@patternfly/react-drag-drop";
 import { TrashIcon } from "@patternfly/react-icons";
+import { ReactFlowProvider } from "reactflow";
 
 // Define Jotai atoms
 export const selectedSourceAtom = atom<Source | undefined>(undefined);
@@ -243,19 +244,21 @@ const PipelineDesigner: React.FunctionComponent = () => {
               <PageSection isFilled>
                 <Card isFullHeight>
                   <CardBody isFilled style={{ padding: "15px" }}>
-                    <CreationFlowTransform
-                      updateIfSourceConfigured={updateIfSourceConfigured}
-                      updateIfDestinationConfigured={
-                        updateIfDestinationConfigured
-                      }
-                      updateSelectedSource={updateSelectedSource}
-                      updateSelectedDestination={updateSelectedDestination}
-                      onToggleDrawer={onToggleDrawer}
-                      updateSelectedTransform={updateSelectedTransform}
-                      selectedTransform={selectedTransform}
-                      isDestinationConfigured={isDestinationConfigured}
-                      rearrangeTrigger={rearrangeTrigger}
-                    />
+                    <ReactFlowProvider>
+                      <CreationFlowTransform
+                        updateIfSourceConfigured={updateIfSourceConfigured}
+                        updateIfDestinationConfigured={
+                          updateIfDestinationConfigured
+                        }
+                        updateSelectedSource={updateSelectedSource}
+                        updateSelectedDestination={updateSelectedDestination}
+                        onToggleDrawer={onToggleDrawer}
+                        updateSelectedTransform={updateSelectedTransform}
+                        selectedTransform={selectedTransform}
+                        isDestinationConfigured={isDestinationConfigured}
+                        rearrangeTrigger={rearrangeTrigger}
+                      />
+                    </ReactFlowProvider>
                   </CardBody>
 
                   <CardFooter

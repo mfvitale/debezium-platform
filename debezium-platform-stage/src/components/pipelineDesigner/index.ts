@@ -1,7 +1,6 @@
 export * from './DataNode'
 export * from './TransformAdditionNode'
 export * from './CompositionFlow'
-export * from './CreationFlow'
 export * from './CustomEdgeDestination'
 export * from './CustomEdgeSource'
 export * from './DataSelectorNode'

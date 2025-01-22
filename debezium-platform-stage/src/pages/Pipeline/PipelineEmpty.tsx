@@ -14,6 +14,7 @@ import {
 
 import { useNavigate } from "react-router-dom";
 import WelcomeFlow from "@components/pipelineDesigner/WelcomeFlow";
+import { ReactFlowProvider } from "reactflow";
 
 const PipelineEmpty: React.FunctionComponent = () => {
   const navigate = useNavigate();
@@ -24,11 +25,7 @@ const PipelineEmpty: React.FunctionComponent = () => {
 
   return (
     <PageSection isFilled>
-      <EmptyState
-        titleText="Welcome to Stage"
-        headingLevel="h1"
-        isFullHeight
-      >
+      <EmptyState titleText="Welcome to Stage" headingLevel="h1" isFullHeight>
         <EmptyStateBody>
           <Content component="p">
             Stage UI provide a visual tool to setup and operate with data
@@ -43,7 +40,9 @@ const PipelineEmpty: React.FunctionComponent = () => {
 
           <Card style={{ height: "300px" }} isPlain>
             <CardBody isFilled>
-              <WelcomeFlow />
+              <ReactFlowProvider>
+                <WelcomeFlow />
+              </ReactFlowProvider>
             </CardBody>
           </Card>
         </EmptyStateBody>

@@ -67,12 +67,19 @@ export type Source = {
   id: number;
 };
 
+export type Predicate = {
+  type: string;
+  config: Record<string, string>;
+  negate?: boolean;
+}
+
 export type TransformData = {
   type: string;
   schema: string;
   vaults: Vault[];
   config: SourceConfig;
   description?: string;
+  predicate?: Predicate;
   name: string;
   id: number;
 };

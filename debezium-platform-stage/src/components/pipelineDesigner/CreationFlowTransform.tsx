@@ -12,6 +12,7 @@ import ReactFlow, {
   Background,
   MiniMap,
   PanOnScrollMode,
+  useReactFlow,
 } from "reactflow";
 import TransformAdditionNode from "./TransformAdditionNode";
 
@@ -76,6 +77,30 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
   rearrangeTrigger,
 }) => {
   const { darkMode } = useData();
+
+  const reactFlowInstance = useReactFlow();
+
+  const refitElements = () => {
+    setTimeout(() => {
+      reactFlowInstance.fitView({
+        padding: 0.2, // 20% padding
+        duration: 200, // 200ms
+      });
+    }, 50);
+  };
+
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      refitElements();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
   const [isTransformModalOpen, setIsTransformModalOpen] = useState(false);
   const [isDestinationModalOpen, setIsDestinationModalOpen] = useState(false);
@@ -252,6 +277,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       type: "transformLinkNode",
       parentId: "transform_group",
       extent: "parent",
+      draggable: false,
     };
   };
   const selectedTransformRef = useRef(selectedTransform);
@@ -640,43 +666,48 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
   );
   return (
     <>
-      <ReactFlow
-        key={nodes.length} // Forces re-render when nodes change
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        proOptions={proOptions}
-        fitView
-        panOnScroll={true}
-        panOnScrollMode={PanOnScrollMode.Horizontal}
-        maxZoom={1.4}
-        minZoom={1.1}
-        panOnDrag={true}
-      >
-        <MiniMap />
-        {/* <Controls /> */}
-        <Background
-          style={{
-            borderRadius: "5px",
-            // backgroundColor: "#F2F9F9"
+      <div ref={reactFlowWrapper} style={{ width: "100%", height: "100%" }}>
+        <ReactFlow
+          key={nodes.length} // Forces re-render when nodes change
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          proOptions={proOptions}
+          fitView
+          panOnScroll={true}
+          panOnScrollMode={PanOnScrollMode.Horizontal}
+          maxZoom={1.4}
+          minZoom={1.1}
+          panOnDrag={true}
+          onInit={(instance) => {
+            instance.fitView({ padding: 0.2 });
           }}
-          gap={13}
-          color={darkMode ? AppColors.dark : AppColors.white}
-        />
-        <svg>
-          <defs>
-            <linearGradient id="edge-gradient-unified">
-              <stop offset="0%" stopColor="#a5c82d" />
-              <stop offset="50%" stopColor="#7fc5a5" />
-              <stop offset="100%" stopColor="#58b2da" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </ReactFlow>
+        >
+          <MiniMap />
+          <Background
+            style={{
+              borderRadius: "5px",
+              // backgroundColor: "#F2F9F9"
+            }}
+            gap={13}
+            color={darkMode ? AppColors.dark : AppColors.white}
+          />
+          <svg>
+            <defs>
+              <linearGradient id="edge-gradient-unified">
+                <stop offset="0%" stopColor="#a5c82d" />
+                <stop offset="50%" stopColor="#7fc5a5" />
+                <stop offset="100%" stopColor="#58b2da" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </ReactFlow>
+      </div>
+
       <Modal
         isOpen={isSourceModalOpen}
         onClose={handleSourceModalToggle}
