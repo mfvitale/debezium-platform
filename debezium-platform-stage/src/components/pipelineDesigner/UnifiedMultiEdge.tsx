@@ -20,7 +20,7 @@ const UnifiedMultiEdge: React.FC<UnifiedMultiEdgeProps> = ({
 }) => {
   const midY = sourceY - 1; // Slightly above the direct line
 
-  const firstTransformX = sourceX + 200;
+  const firstTransformX = sourceX + 180;
   const lastTransformX = targetX - 220;
 
   // Create a combined path through all three points

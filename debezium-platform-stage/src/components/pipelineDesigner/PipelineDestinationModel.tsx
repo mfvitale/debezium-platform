@@ -17,11 +17,11 @@ import SourceDestinationSelectionList from "../SourceDestinationSelectionList";
 import { CatalogGrid } from "@components/CatalogGrid";
 import { CreateDestination } from "@destinationPage/CreateDestination";
 
-type DestinationPipelineModelProps = {
+type PipelineDestinationModelProps = {
   onDestinationSelection: (destination: Destination) => void;
 };
 
-const DestinationPipelineModel: React.FC<DestinationPipelineModelProps> = ({
+const PipelineDestinationModel: React.FC<PipelineDestinationModelProps> = ({
   onDestinationSelection,
 }) => {
   const id1 = "pipeline-destination-select";
@@ -153,4 +153,4 @@ const DestinationPipelineModel: React.FC<DestinationPipelineModelProps> = ({
   );
 };
 
-export default DestinationPipelineModel;
+export default PipelineDestinationModel;

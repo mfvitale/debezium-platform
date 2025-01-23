@@ -4,6 +4,7 @@ import {
   Bullseye,
   CardFooter,
   Content,
+  Tooltip,
 } from "@patternfly/react-core";
 import { Handle, Position } from "reactflow";
 import "./TransformLinkNode.css";
@@ -12,8 +13,18 @@ import { AutomationIcon, DataProcessorIcon } from "@patternfly/react-icons";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 
+type Predicate = {
+  label: string;
+  negate: boolean;
+};
+
 interface TransformLinkNodeProps {
-  data: { label: string; sourcePosition: Position; targetPosition: Position };
+  data: {
+    label: string;
+    sourcePosition: Position;
+    targetPosition: Position;
+    predicate?: Predicate;
+  };
 }
 
 const TransformLinkNode: React.FC<TransformLinkNodeProps> = ({ data }) => {
@@ -31,6 +42,7 @@ const TransformLinkNode: React.FC<TransformLinkNodeProps> = ({ data }) => {
                 }
               : {
                   backgroundColor: AppColors.white,
+                  cursor: "unset",
                 }
           }
         >
@@ -41,17 +53,21 @@ const TransformLinkNode: React.FC<TransformLinkNodeProps> = ({ data }) => {
             isPlain
             style={{ position: "relative" }}
           >
-            
-            <div
-              style={{
-                position: "absolute",
-                top: -3,
-                right: 6, 
-                zIndex: 1, 
-              }}
-            >
-              <AutomationIcon style={{ fontSize: 10 }} />
-            </div>
+            {data.predicate && (
+              <div
+                style={{
+                  cursor: "pointer",
+                  position: "absolute",
+                  top: -4,
+                  right: 5,
+                  zIndex: 1,
+                }}
+              >
+                <Tooltip content={data.predicate.label}>
+                  <AutomationIcon style={{ fontSize: 10 }} />
+                </Tooltip>
+              </div>
+            )}
 
             <CardBody
               style={{
@@ -76,9 +92,11 @@ const TransformLinkNode: React.FC<TransformLinkNodeProps> = ({ data }) => {
                   fontSize: "8px",
                   fontWeight: "bold",
                   maxWidth: "100px",
+                  minWidth: "40px",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
+                  textAlign: "center",
                 }}
               >
                 {data.label}

@@ -15,11 +15,11 @@ import { useQuery } from "react-query";
 import TransformSelectionList from "@components/TransformSelectionList";
 import { CreateTransforms } from "src/pages/Transforms";
 
-type TransformPipelineModelProps = {
+type PipelineTransformModelProps = {
   onTransformSelection: (source: TransformData) => void;
 };
 
-const TransformPipelineModel: React.FC<TransformPipelineModelProps> = ({
+const PipelineTransformModel: React.FC<PipelineTransformModelProps> = ({
   onTransformSelection,
 }) => {
   const id1 = "pipeline-transform-select";
@@ -118,4 +118,4 @@ const TransformPipelineModel: React.FC<TransformPipelineModelProps> = ({
   );
 };
 
-export default TransformPipelineModel;
+export default PipelineTransformModel;

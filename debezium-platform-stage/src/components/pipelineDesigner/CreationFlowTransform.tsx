@@ -21,19 +21,25 @@ import DataNode from "./DataNode";
 import { MdLogin, MdLogout } from "react-icons/md";
 import DataSelectorNode from "./DataSelectorNode";
 import { Button, Modal, ModalBody, ModalHeader } from "@patternfly/react-core";
-import { Destination, Source, Transform, TransformData } from "../../apis/apis";
+import {
+  Destination,
+  Predicate,
+  Source,
+  Transform,
+  TransformData,
+} from "../../apis/apis";
 import { PlusIcon } from "@patternfly/react-icons";
 import "./CreationFlow.css";
-import SourcePipelineModel from "./SourcePipelineModel";
-import DestinationPipelineModel from "./DestinationPipelineModel";
+import PipelineSourceModel from "./PipelineSourceModel";
+import PipelineDestinationModel from "./PipelineDestinationModel";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 import TransformLinkNode from "./TransformLinkNode";
-import TransformPipelineModel from "./TransformPipelineModel";
+import PipelineTransformModel from "./PipelineTransformModel";
 import TransformGroupNode from "./TransformGroupNode";
 
 import TransformSelectorNode from "./TransformSelectorNode";
-import TransformSelectedNode from "./TransformSelectedNode";
+import TransformCollapsedNode from "./TransformCollapsedNode";
 import UnifiedCustomEdge from "./UnifiedCustomEdge";
 import UnifiedMultiEdge from "./UnifiedMultiEdge";
 
@@ -43,7 +49,7 @@ const nodeTypes = {
   addTransformNode: TransformAdditionNode,
   transformGroupNode: TransformGroupNode,
   transformSelectorNode: TransformSelectorNode,
-  transformSelectedNode: TransformSelectedNode,
+  transformCollapsedNode: TransformCollapsedNode,
   dataNode: DataNode,
 };
 
@@ -260,7 +266,8 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
   const createNewTransformNode = (
     id: string,
     xPosition: number,
-    transformName: string
+    transformName: string,
+    transformPredicate?: Predicate
   ) => {
     return {
       id,
@@ -268,6 +275,12 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         label: transformName,
         sourcePosition: "left",
         targetPosition: "right",
+        ...(transformPredicate && {
+          predicate: {
+            label: transformPredicate.type.split(".").pop(),
+            negate: transformPredicate.negate,
+          },
+        }),
       },
       position: { x: xPosition, y: 31 },
       targetPosition: "left",
@@ -402,7 +415,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
     setEdges([...newEdge]);
   }, [cardButtonTransform, onToggleDrawer]);
 
-  const TransformSelectedNode = useMemo(() => {
+  const TransformCollapsedNode = useMemo(() => {
     return {
       id: "transform_selected",
       data: {
@@ -414,7 +427,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       },
       position: { x: 270, y: 78 },
       targetPosition: "left",
-      type: "transformSelectedNode",
+      type: "transformCollapsedNode",
       draggable: false,
     };
   }, [handleExpand]);
@@ -445,7 +458,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
           (node: any) =>
             !node.id.includes("transform") && node.id !== "destination"
         ),
-        TransformSelectedNode,
+        TransformCollapsedNode,
         updatedDataSelectorDestinationNode,
       ];
     });
@@ -460,7 +473,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       },
     ]);
   }, [
-    TransformSelectedNode,
+    TransformCollapsedNode,
     dataSelectorDestinationNode,
     isDestinationConfiguredRef,
   ]);
@@ -525,7 +538,8 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       const newTransformNode = createNewTransformNode(
         newId,
         xPosition,
-        transform.name
+        transform.name,
+        transform.predicate
       );
 
       setNodes((prevNodes: any) => {
@@ -721,7 +735,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
           description="Select a source to be used in pipeline from the list of already configured source listed below or configure a new source by selecting create a new source radio card."
         />
         <ModalBody tabIndex={0} id="modal-source-body-with-description">
-          <SourcePipelineModel onSourceSelection={onSourceSelection} />
+          <PipelineSourceModel onSourceSelection={onSourceSelection} />
         </ModalBody>
       </Modal>
       <Modal
@@ -737,7 +751,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
           description="Select a source to be used in pipeline from the list of already configured source listed below or configure a new source by selecting create a new source radio card."
         />
         <ModalBody tabIndex={0} id="modal-transform-body-with-description">
-          <TransformPipelineModel onTransformSelection={handleAddTransform} />
+          <PipelineTransformModel onTransformSelection={handleAddTransform} />
         </ModalBody>
       </Modal>
       <Modal
@@ -756,7 +770,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
           tabIndex={0}
           id="modal-box-body-destination-with-description"
         >
-          <DestinationPipelineModel
+          <PipelineDestinationModel
             onDestinationSelection={onDestinationSelection}
           />
         </ModalBody>

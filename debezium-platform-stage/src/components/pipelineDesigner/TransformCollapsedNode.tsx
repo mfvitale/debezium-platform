@@ -17,7 +17,7 @@ import ConnectorImage from "@components/ComponentImage";
 import { AngleRightIcon } from "@patternfly/react-icons";
 import { Transform } from "src/apis";
 
-interface TransformSelectedNodeProps {
+interface TransformCollapsedNodeProps {
   data: {
     label: string;
     sourcePosition: Position;
@@ -27,7 +27,7 @@ interface TransformSelectedNodeProps {
   };
 }
 
-const TransformSelectedNode: React.FC<TransformSelectedNodeProps> = ({
+const TransformCollapsedNode: React.FC<TransformCollapsedNodeProps> = ({
   data,
 }) => {
   const { darkMode } = useData();
@@ -165,4 +165,4 @@ const TransformSelectedNode: React.FC<TransformSelectedNodeProps> = ({
   );
 };
 
-export default TransformSelectedNode;
+export default TransformCollapsedNode;
