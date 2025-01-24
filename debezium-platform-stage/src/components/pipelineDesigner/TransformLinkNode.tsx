@@ -1,15 +1,17 @@
 import {
   Card,
   CardBody,
-  Bullseye,
-  CardFooter,
   Content,
   Tooltip,
+  Icon,
+  Divider,
+  Stack,
+  StackItem,
 } from "@patternfly/react-core";
 import { Handle, Position } from "reactflow";
 import "./TransformLinkNode.css";
 
-import { AutomationIcon, DataProcessorIcon } from "@patternfly/react-icons";
+import { DataProcessorIcon, FilterIcon } from "@patternfly/react-icons";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 
@@ -64,44 +66,76 @@ const TransformLinkNode: React.FC<TransformLinkNodeProps> = ({ data }) => {
                 }}
               >
                 <Tooltip content={data.predicate.label}>
-                  <AutomationIcon style={{ fontSize: 10 }} />
+                  <Icon status="info">
+                    <FilterIcon style={{ fontSize: 8 }} />
+                  </Icon>
                 </Tooltip>
               </div>
             )}
 
             <CardBody
               style={{
-                paddingTop: 8,
-                paddingBottom: 2,
-                paddingLeft: 10,
-                paddingRight: 10,
+                paddingTop: "5px",
+                paddingBottom: "2px",
+                paddingLeft: "5px",
+                paddingRight: "5px",
               }}
             >
-              <Bullseye>
-                <div>
-                  <DataProcessorIcon style={{ fontSize: 15 }} />
-                </div>
-              </Bullseye>
+              {/* <Bullseye> */}
+
+              <Stack>
+                <StackItem
+                  style={{
+                    // textAlign: "center",
+                    display: "flex",
+                    justifyContent: "center",
+                    paddingBottom: 5,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      backgroundColor:
+                        "var(--pf-global--palette--black-200, #f5f5f5)",
+                      borderRadius: "4px",
+                      width: "25px",
+                      height: "25px",
+                    }}
+                  >
+                    <DataProcessorIcon style={{ fontSize: 15 }} />
+                  </div>
+                </StackItem>
+                <Divider />
+                <StackItem
+                  style={{
+                    paddingTop: 3,
+                    // paddingInlineEnd: 5,
+                    // paddingInlineStart: 5,
+                    textAlign: "center",
+                    // display: "flex",
+                    // justifyContent: "center",
+                  }}
+                >
+                  <Content
+                    type="p"
+                    style={{
+                      fontSize: "9px",
+                      fontWeight: "bold",
+                      maxWidth: "100px",
+                      minWidth: "60px",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      textAlign: "center",
+                    }}
+                  >
+                    {data.label}
+                  </Content>
+                </StackItem>
+              </Stack>
             </CardBody>
-            <CardFooter
-              style={{ paddingLeft: 10, paddingRight: 10, paddingBottom: 5 }}
-            >
-              <Content
-                type="p"
-                style={{
-                  fontSize: "8px",
-                  fontWeight: "bold",
-                  maxWidth: "100px",
-                  minWidth: "40px",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  textAlign: "center",
-                }}
-              >
-                {data.label}
-              </Content>
-            </CardFooter>
           </Card>
 
           <Handle

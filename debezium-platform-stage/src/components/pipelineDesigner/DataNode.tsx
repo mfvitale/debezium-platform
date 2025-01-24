@@ -1,11 +1,11 @@
 import {
   Card,
   CardBody,
-  Bullseye,
   Stack,
   StackItem,
   Tooltip,
   Content,
+  Divider,
 } from "@patternfly/react-core";
 import { Handle, Position } from "reactflow";
 import ConnectorImage from "../ComponentImage";
@@ -29,31 +29,33 @@ const DataNode: React.FC<DataNodeProps> = ({ data }) => {
 
   return (
     <>
-    {!data.compositionFlow  && (<div
-        onClick={data.editAction}
-        className={
-          data.type === AppStrings.source
-            ? "gradientSource editDataNodeSource"
-            : "gradientDestination editDataNodeDestination"
-        }
-      >
-        <Tooltip content={<div>Change pipeline {data.type}.</div>}>
-          <div
-            style={
-              darkMode
-                ? {
-                    background: AppColors.dark,
-                  }
-                : {
-                    backgroundColor: AppColors.white,
-                  }
-            }
-          >
-            <PencilAltIcon />
-          </div>
-        </Tooltip>
-      </div>)}
-      
+      {!data.compositionFlow && (
+        <div
+          onClick={data.editAction}
+          className={
+            data.type === AppStrings.source
+              ? "gradientSource editDataNodeSource"
+              : "gradientDestination editDataNodeDestination"
+          }
+        >
+          <Tooltip content={<div>Change pipeline {data.type}.</div>}>
+            <div
+              style={
+                darkMode
+                  ? {
+                      background: AppColors.dark,
+                    }
+                  : {
+                      backgroundColor: AppColors.white,
+                    }
+              }
+            >
+              <PencilAltIcon />
+            </div>
+          </Tooltip>
+        </div>
+      )}
+
       <div
         className={
           data.type === AppStrings.source
@@ -84,48 +86,55 @@ const DataNode: React.FC<DataNodeProps> = ({ data }) => {
             style={{ cursor: "auto", minWidth: 110 }}
           >
             <CardBody style={{ padding: 7 }} className="pf-v5-u-box-shadow-md">
-              <Bullseye>
-                <Stack>
-                  <StackItem
+              {/* <Bullseye> */}
+              <Stack>
+                <StackItem
+                  style={{
+                    // textAlign: "center",
+                    display: "flex",
+                    justifyContent: "center",
+                    paddingBottom: 5,
+                  }}
+                >
+                  <div
                     style={{
-                      textAlign: "center",
-                      display: "flex",
+                      display: "inline-flex",
                       justifyContent: "center",
+                      alignItems: "center",
+                      backgroundColor:
+                        "var(--pf-global--palette--black-200, #f5f5f5)",
+                      borderRadius: "5px",
+                      width: "35px",
+                      height: "35px",
+                      padding: "5px",
                     }}
                   >
-                    <Bullseye
-                      style={
-                        darkMode
-                          ? {
-                              background: AppColors.darkBlue,
-                              padding: 10,
-                              borderRadius: 10,
-                            }
-                          : {}
-                      }
-                    >
-                      <ConnectorImage
-                        connectorType={data.connectorType}
-                        size={30}
-                      />
-                    </Bullseye>
-                  </StackItem>
-                  <StackItem
-                    style={{
-                      paddingTop: 5,
-                      paddingInlineEnd: 5,
-                      paddingInlineStart: 5,
-                    }}
+                    <ConnectorImage
+                      connectorType={data.connectorType}
+                      size={30}
+                    />
+                  </div>
+                </StackItem>
+                <Divider />
+                <StackItem
+                  style={{
+                    paddingTop: 3,
+                    // paddingInlineEnd: 5,
+                    // paddingInlineStart: 5,
+                    textAlign: "center",
+                    // display: "flex",
+                    // justifyContent: "center",
+                  }}
+                >
+                  <Content
+                    type="p"
+                    style={{ fontSize: "10px", fontWeight: "bold" }}
                   >
-                    <Content
-                      type="p"
-                      style={{ fontSize: "10px", fontWeight: "bold" }}
-                    >
-                      {data.label}
-                    </Content>
-                  </StackItem>
-                </Stack>
-              </Bullseye>
+                    {data.label}
+                  </Content>
+                </StackItem>
+              </Stack>
+              {/* </Bullseye> */}
             </CardBody>
           </Card>
           {data.type === "destination" && (

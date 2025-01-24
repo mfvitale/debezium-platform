@@ -135,7 +135,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
               ? handleDestinationModalToggle
               : handleTransformModalToggle
           }
-          style={{ paddingRight: 10, paddingLeft: 10, fontSize: ".8em" }}
+          style={{ paddingRight: 5, paddingLeft: 5, fontSize: ".8em" }}
           icon={<PlusIcon />}
           size="sm"
         >

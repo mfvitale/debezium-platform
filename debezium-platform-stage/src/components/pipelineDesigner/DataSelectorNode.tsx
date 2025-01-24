@@ -1,7 +1,6 @@
 import {
   Card,
   CardBody,
-  Bullseye,
   Stack,
   StackItem,
 } from "@patternfly/react-core";
@@ -54,30 +53,74 @@ const DataSelectorNode: React.FC<DataSelectorNodeProps> = ({ data }) => {
             style={{ cursor: "auto", width: 110 }}
           >
             <CardBody
-              style={{ padding: "7px" }}
+              style={{
+                paddingTop: "5px",
+                paddingBottom: "2px",
+                paddingLeft: "10px",
+                paddingRight: "10px",
+              }}
               className="pf-v5-u-box-shadow-md"
             >
-              <Bullseye>
-                <Stack>
+              {/* <Bullseye> */}
+              <Stack>
+                <StackItem
+                  style={{
+                    // textAlign: "center",
+                    display: "flex",
+                    justifyContent: "center",
+                    paddingBottom: "5px",
+                  }}
+                >
+                  <div>
+                    {data.type === AppStrings.source ? (
+                      <div
+                        style={{
+                          display: "inline-flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          backgroundColor:
+                            "var(--pf-global--palette--black-200, #f5f5f5)",
+                          borderRadius: "5px",
+                          width: "30px",
+                          height: "30px",
+                        }}
+                      >
+                        <DataSourceIcon style={{ fontSize: "15px" }} />
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          display: "inline-flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          backgroundColor:
+                            "var(--pf-global--palette--black-200, #f5f5f5)",
+                          borderRadius: "5px",
+                          width: "30px",
+                          height: "30px",
+                        }}
+                      >
+                        <DataSinkIcon style={{ fontSize: 15 }} />
+                      </div>
+                    )}
+                  </div>
+                </StackItem>
+                {/* <Divider /> */}
+                {data.welcomeFlow ? (
+                  <StackItem>{data.label}</StackItem>
+                ) : (
                   <StackItem
                     style={{
-                      textAlign: "center",
+                      // paddingTop: "2px",
                       display: "flex",
                       justifyContent: "center",
                     }}
                   >
-                    <div>
-                      {data.type === AppStrings.source ? (
-                        <DataSourceIcon style={{ fontSize: 18 }} />
-                      ) : (
-                        <DataSinkIcon style={{ fontSize: 18 }} />
-                      )}
-                    </div>
+                    {data.action}
                   </StackItem>
-                  {data.welcomeFlow ? (<StackItem>{data.type}</StackItem>): (<StackItem>{data.action}</StackItem>)}
-                  
-                </Stack>
-              </Bullseye>
+                )}
+              </Stack>
+              {/* </Bullseye> */}
             </CardBody>
           </Card>
           {data.type === AppStrings.destination && (

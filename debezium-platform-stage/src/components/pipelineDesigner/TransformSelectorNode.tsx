@@ -4,7 +4,6 @@ import "./DebeziumNode.css";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 import {
-  Bullseye,
   Card,
   CardBody,
   Stack,
@@ -51,25 +50,52 @@ const TransformSelectorNode: React.FC<TransformSelectorNodeProps> = ({
             style={{ cursor: "auto", width: 110 }}
           >
             <CardBody
-              style={{ padding: "7px" }}
+                style={{
+                  paddingTop: "5px",
+                  paddingBottom: "2px",
+                  paddingLeft: "10px",
+                  paddingRight: "10px",
+                }}
               className="pf-v5-u-box-shadow-md"
             >
-              <Bullseye>
+              {/* <Bullseye> */}
                 <Stack>
                   <StackItem
                     style={{
-                      textAlign: "center",
+                      // textAlign: "center",
                       display: "flex",
                       justifyContent: "center",
+                      paddingBottom: "5px",
                     }}
                   >
-                    <div>
-                      <DataProcessorIcon style={{ fontSize: 18 }} />
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor:
+                          "var(--pf-global--palette--black-200, #f5f5f5)",
+                        borderRadius: "5px",
+                        width: "30px",
+                        height: "30px",
+                      }}
+                    >
+                      <DataProcessorIcon style={{ fontSize: 15 }} />
                     </div>
+                    {/* <div>
+                      <DataProcessorIcon style={{ fontSize: 18 }} />
+                    </div> */}
                   </StackItem>
-                  <StackItem>{data.action}</StackItem>
+                  {/* <Divider /> */}
+                  <StackItem
+                   style={{
+                    // paddingTop: "2px",
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                  >{data.action}</StackItem>
                 </Stack>
-              </Bullseye>
+              {/* </Bullseye> */}
             </CardBody>
           </Card>
           <Handle

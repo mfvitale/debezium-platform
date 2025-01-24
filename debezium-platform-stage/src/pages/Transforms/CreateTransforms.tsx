@@ -348,17 +348,17 @@ const CreateTransforms: React.FunctionComponent<ICreateTransformsProps> = ({
     const predicateConfig: Record<string, string> = {};
     let transformConfig: Record<string, string> = {};
 
-    if(selectedPredicate){
+    if (selectedPredicate) {
       Object.entries(restValues).forEach(([key, value]) => {
-        if(key.startsWith("predicate")){
-          if(key.startsWith("predicateConfig.")){
+        if (key.startsWith("predicate")) {
+          if (key.startsWith("predicateConfig.")) {
             predicateConfig[key.replace("predicateConfig.", "")] = value;
           }
+        } else {
+          transformConfig[key] = value;
         }
-        else{
-          transformConfig[key] = value}
       });
-    }else {
+    } else {
       transformConfig = restValues;
     }
 
@@ -369,11 +369,11 @@ const CreateTransforms: React.FunctionComponent<ICreateTransformsProps> = ({
       vaults: [],
       config: { ...transformConfig },
       ...(selectedPredicate && {
-      predicate: {
-        type: selectedPredicate,
-        config: { ...predicateConfig },
-        negate: values["predicate.negate"] === "true",
-      },
+        predicate: {
+          type: selectedPredicate,
+          config: { ...predicateConfig },
+          negate: values["predicate.negate"] === "true",
+        },
       }),
       name: transformName,
     };
@@ -572,107 +572,6 @@ const CreateTransforms: React.FunctionComponent<ICreateTransformsProps> = ({
                         />
                       </FormGroup>
 
-                      <FormFieldGroup
-                        header={
-                          <FormFieldGroupHeader
-                            titleText={{
-                              text: "Predicates & Negate",
-                              id: `field-group-${selected}-id`,
-                            }}
-                            titleDescription={
-                              "Transformations are applied only to records that meet the condition specified by the predicate. Set 'negate' to 'true' to reverse this behavior."
-                            }
-                          />
-                        }
-                      >
-                        <FormGroup
-                          label="Predicate type"
-                          labelHelp={
-                            <Popover
-                              bodyContent={
-                                "The name of Java class implementing the predicate"
-                              }
-                            >
-                              <FormGroupLabelHelp aria-label="More info for name field" />
-                            </Popover>
-                          }
-                          fieldId="predicate-type"
-                        >
-                          <FormSelect
-                            value={selectedPredicate}
-                            onChange={onChange}
-                            aria-label="FormSelect Input"
-                            ouiaId="BasicFormSelect"
-                          >
-                            {selectPredicateOptions?.map((option, index) => (
-                              <FormSelectOption
-                                isDisabled={option.isDisabled}
-                                key={index}
-                                value={option.value}
-                                label={option.label}
-                                isPlaceholder={option.isPlaceholder}
-                              />
-                            ))}
-                          </FormSelect>
-                        </FormGroup>
-                        {selectedPredicate &&
-                          selectedPredicate !==
-                            "org.apache.kafka.connect.transforms.predicates.RecordIsTombstone" &&
-                          (() => {
-                            const predicate = predicates.find(
-                              (predicate) =>
-                                predicate.predicate === selectedPredicate
-                            );
-                            const predicateProperties =
-                              predicate?.properties as Record<string, any>;
-                            const propertyKey = Object.keys(
-                              predicateProperties || {}
-                            )[0];
-                            const property = predicateProperties?.[propertyKey];
-
-                            return (
-                              <FormGroup
-                                label={property?.title || ""}
-                                isRequired
-                                labelHelp={
-                                  <Popover
-                                    bodyContent={property?.description || ""}
-                                  >
-                                    <FormGroupLabelHelp aria-label="More info for name field" />
-                                  </Popover>
-                                }
-                                fieldId="predicate-config"
-                              >
-                                <TextInput
-                                  isRequired
-                                  id={property["x-name"]}
-                                  name={property["x-name"]}
-                                  aria-label={property["x-name"]}
-                                  onChange={(_event, value) => {
-                                    setValue(`predicateConfig.${property["x-name"]}`, value);
-                                    // setError("description", undefined);
-                                  }}
-                                  value={getValue(`predicateConfig.${property["x-name"]}`)}
-                                />
-                              </FormGroup>
-                            );
-                          })()}
-                        {selectedPredicate && (
-                          <FormGroup label="Negate predicate" fieldId="negate">
-                            <Checkbox
-                              id="description-check-1"
-                              label="Set negate to true"
-                              isChecked={getValue("predicate.negate") === "true"}
-                              onChange={(_event: React.FormEvent<HTMLInputElement>, checked: boolean) => {
-                                setValue("predicate.negate", ""+checked);
-                                setError("predicate.negate", undefined);
-                              }}
-                              description="Setting this option to True applies the predicate only to records that do not match the defined predicate condition"
-                            />
-                          </FormGroup>
-                        )}
-                      </FormFieldGroup>
-
                       {selected && (
                         <FormFieldGroup
                           header={
@@ -804,6 +703,113 @@ const CreateTransforms: React.FunctionComponent<ICreateTransformsProps> = ({
                           })}
                         </FormFieldGroup>
                       )}
+
+                      <FormFieldGroup
+                        header={
+                          <FormFieldGroupHeader
+                            titleText={{
+                              text: "Predicate",
+                              id: `field-group-${selected}-id`,
+                            }}
+                            titleDescription={
+                              "Transformations are applied only to records that meet the condition specified by the predicate."
+                            }
+                          />
+                        }
+                      >
+                        <FormGroup
+                          label="Predicate type"
+                          labelHelp={
+                            <Popover
+                              bodyContent={
+                                "The name of Java class implementing the predicate"
+                              }
+                            >
+                              <FormGroupLabelHelp aria-label="More info for name field" />
+                            </Popover>
+                          }
+                          fieldId="predicate-type"
+                        >
+                          <FormSelect
+                            value={selectedPredicate}
+                            onChange={onChange}
+                            aria-label="FormSelect Input"
+                            ouiaId="BasicFormSelect"
+                          >
+                            {selectPredicateOptions?.map((option, index) => (
+                              <FormSelectOption
+                                isDisabled={option.isDisabled}
+                                key={index}
+                                value={option.value}
+                                label={option.label}
+                                isPlaceholder={option.isPlaceholder}
+                              />
+                            ))}
+                          </FormSelect>
+                        </FormGroup>
+                        {selectedPredicate &&
+                          selectedPredicate !==
+                            "org.apache.kafka.connect.transforms.predicates.RecordIsTombstone" &&
+                          (() => {
+                            const predicate = predicates.find(
+                              (predicate) =>
+                                predicate.predicate === selectedPredicate
+                            );
+                            const predicateProperties =
+                              predicate?.properties as Record<string, any>;
+                            const propertyKey = Object.keys(
+                              predicateProperties || {}
+                            )[0];
+                            const property = predicateProperties?.[propertyKey];
+
+                            return (
+                              <FormGroup
+                                label={property?.title || ""}
+                                isRequired
+                                labelHelp={
+                                  <Popover
+                                    bodyContent={property?.description || ""}
+                                  >
+                                    <FormGroupLabelHelp aria-label="More info for name field" />
+                                  </Popover>
+                                }
+                                fieldId="predicate-config"
+                              >
+                                <TextInput
+                                  isRequired
+                                  id={property["x-name"]}
+                                  name={property["x-name"]}
+                                  aria-label={property["x-name"]}
+                                  onChange={(_event, value) => {
+                                    setValue(
+                                      `predicateConfig.${property["x-name"]}`,
+                                      value
+                                    );
+                                    // setError("description", undefined);
+                                  }}
+                                  value={getValue(
+                                    `predicateConfig.${property["x-name"]}`
+                                  )}
+                                />
+                              </FormGroup>
+                            );
+                          })()}
+                        {selectedPredicate && (
+                          <Checkbox
+                            id="description-check-1"
+                            label="Negate predicate"
+                            isChecked={getValue("predicate.negate") === "true"}
+                            onChange={(
+                              _event: React.FormEvent<HTMLInputElement>,
+                              checked: boolean
+                            ) => {
+                              setValue("predicate.negate", "" + checked);
+                              setError("predicate.negate", undefined);
+                            }}
+                            description="Setting this option to True applies the predicate only to records that do not match the defined predicate condition"
+                          />
+                        )}
+                      </FormFieldGroup>
                     </Form>
                   </CardBody>
                 </Card>
