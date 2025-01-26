@@ -4,7 +4,6 @@ import "./DebeziumNode.css";
 import dbz from "../../assets/debeziumNoText.png";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
-// import { Button } from "@patternfly/react-core";
 
 interface DebeziumNodeProps {
   data: {

@@ -10,7 +10,6 @@ import {
 } from "@patternfly/react-core";
 import React, { useCallback, useEffect, useState } from "react";
 import { Destination, fetchData } from "../../apis/apis";
-// import { CreateDestinationForm } from "../../pages/Destination/CreateDestinationForm";
 import { useQuery } from "react-query";
 import { API_URL } from "../../utils/constants";
 import SourceDestinationSelectionList from "../SourceDestinationSelectionList";
@@ -107,7 +106,6 @@ const PipelineDestinationModel: React.FC<PipelineDestinationModelProps> = ({
       <Divider style={{ marginTop: "10px" }} />
       {isCreateChecked === id2 &&
         (selectedDestination === "" ? (
-          //   <TextContent style={{ padding: "10px" }}>
           <Content component="p">
             <b>
               Select the type of destination you want to connect from the list
@@ -116,8 +114,6 @@ const PipelineDestinationModel: React.FC<PipelineDestinationModelProps> = ({
             </b>
           </Content>
         ) : (
-          // </TextContent>
-          // <TextContent style={{ padding: "10px" }}>
           <Content component="p">
             <b>
               Fill out the below form or use the smart editor to setup a new
@@ -126,7 +122,6 @@ const PipelineDestinationModel: React.FC<PipelineDestinationModelProps> = ({
               smart editor.
             </b>
           </Content>
-          // </TextContent>
         ))}
 
       {isCreateChecked === id1 ? (

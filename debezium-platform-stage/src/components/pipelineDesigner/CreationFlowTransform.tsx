@@ -275,7 +275,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         label: transformName,
         sourcePosition: "left",
         targetPosition: "right",
-        ...(transformPredicate && {
+        ...(transformPredicate?.type && {
           predicate: {
             label: transformPredicate.type.split(".").pop(),
             negate: transformPredicate.negate,

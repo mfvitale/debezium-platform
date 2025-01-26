@@ -86,7 +86,6 @@ const DataNode: React.FC<DataNodeProps> = ({ data }) => {
             style={{ cursor: "auto", minWidth: 110 }}
           >
             <CardBody style={{ padding: 7 }} className="pf-v5-u-box-shadow-md">
-              {/* <Bullseye> */}
               <Stack>
                 <StackItem
                   style={{
@@ -119,11 +118,7 @@ const DataNode: React.FC<DataNodeProps> = ({ data }) => {
                 <StackItem
                   style={{
                     paddingTop: 3,
-                    // paddingInlineEnd: 5,
-                    // paddingInlineStart: 5,
                     textAlign: "center",
-                    // display: "flex",
-                    // justifyContent: "center",
                   }}
                 >
                   <Content
@@ -134,7 +129,6 @@ const DataNode: React.FC<DataNodeProps> = ({ data }) => {
                   </Content>
                 </StackItem>
               </Stack>
-              {/* </Bullseye> */}
             </CardBody>
           </Card>
           {data.type === "destination" && (

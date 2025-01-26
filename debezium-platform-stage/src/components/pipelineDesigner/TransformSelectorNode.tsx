@@ -3,12 +3,7 @@ import "./DebeziumNode.css";
 
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
-import {
-  Card,
-  CardBody,
-  Stack,
-  StackItem,
-} from "@patternfly/react-core";
+import { Card, CardBody, Stack, StackItem } from "@patternfly/react-core";
 import { DataProcessorIcon } from "@patternfly/react-icons";
 
 interface TransformSelectorNodeProps {
@@ -50,52 +45,46 @@ const TransformSelectorNode: React.FC<TransformSelectorNodeProps> = ({
             style={{ cursor: "auto", width: 110 }}
           >
             <CardBody
-                style={{
-                  paddingTop: "5px",
-                  paddingBottom: "2px",
-                  paddingLeft: "10px",
-                  paddingRight: "10px",
-                }}
+              style={{
+                paddingTop: "5px",
+                paddingBottom: "2px",
+                paddingLeft: "10px",
+                paddingRight: "10px",
+              }}
               className="pf-v5-u-box-shadow-md"
             >
-              {/* <Bullseye> */}
-                <Stack>
-                  <StackItem
+              <Stack>
+                <StackItem
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    paddingBottom: "5px",
+                  }}
+                >
+                  <div
                     style={{
-                      // textAlign: "center",
-                      display: "flex",
+                      display: "inline-flex",
                       justifyContent: "center",
-                      paddingBottom: "5px",
+                      alignItems: "center",
+                      backgroundColor:
+                        "var(--pf-global--palette--black-200, #f5f5f5)",
+                      borderRadius: "5px",
+                      width: "30px",
+                      height: "30px",
                     }}
                   >
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor:
-                          "var(--pf-global--palette--black-200, #f5f5f5)",
-                        borderRadius: "5px",
-                        width: "30px",
-                        height: "30px",
-                      }}
-                    >
-                      <DataProcessorIcon style={{ fontSize: 15 }} />
-                    </div>
-                    {/* <div>
-                      <DataProcessorIcon style={{ fontSize: 18 }} />
-                    </div> */}
-                  </StackItem>
-                  {/* <Divider /> */}
-                  <StackItem
-                   style={{
-                    // paddingTop: "2px",
+                    <DataProcessorIcon style={{ fontSize: 15 }} />
+                  </div>
+                </StackItem>
+                <StackItem
+                  style={{
                     display: "flex",
                     justifyContent: "center",
                   }}
-                  >{data.action}</StackItem>
-                </Stack>
-              {/* </Bullseye> */}
+                >
+                  {data.action}
+                </StackItem>
+              </Stack>
             </CardBody>
           </Card>
           <Handle

@@ -81,12 +81,9 @@ const TransformLinkNode: React.FC<TransformLinkNodeProps> = ({ data }) => {
                 paddingRight: "5px",
               }}
             >
-              {/* <Bullseye> */}
-
               <Stack>
                 <StackItem
                   style={{
-                    // textAlign: "center",
                     display: "flex",
                     justifyContent: "center",
                     paddingBottom: 5,
@@ -111,11 +108,7 @@ const TransformLinkNode: React.FC<TransformLinkNodeProps> = ({ data }) => {
                 <StackItem
                   style={{
                     paddingTop: 3,
-                    // paddingInlineEnd: 5,
-                    // paddingInlineStart: 5,
                     textAlign: "center",
-                    // display: "flex",
-                    // justifyContent: "center",
                   }}
                 >
                   <Content

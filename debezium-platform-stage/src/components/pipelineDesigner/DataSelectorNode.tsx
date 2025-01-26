@@ -1,9 +1,4 @@
-import {
-  Card,
-  CardBody,
-  Stack,
-  StackItem,
-} from "@patternfly/react-core";
+import { Card, CardBody, Stack, StackItem } from "@patternfly/react-core";
 import { Handle, Position } from "reactflow";
 import "./DataNode.css";
 import { DataSinkIcon, DataSourceIcon } from "@patternfly/react-icons";
@@ -61,11 +56,9 @@ const DataSelectorNode: React.FC<DataSelectorNodeProps> = ({ data }) => {
               }}
               className="pf-v5-u-box-shadow-md"
             >
-              {/* <Bullseye> */}
               <Stack>
                 <StackItem
                   style={{
-                    // textAlign: "center",
                     display: "flex",
                     justifyContent: "center",
                     paddingBottom: "5px",
@@ -105,13 +98,11 @@ const DataSelectorNode: React.FC<DataSelectorNodeProps> = ({ data }) => {
                     )}
                   </div>
                 </StackItem>
-                {/* <Divider /> */}
                 {data.welcomeFlow ? (
                   <StackItem>{data.label}</StackItem>
                 ) : (
                   <StackItem
                     style={{
-                      // paddingTop: "2px",
                       display: "flex",
                       justifyContent: "center",
                     }}
@@ -120,7 +111,6 @@ const DataSelectorNode: React.FC<DataSelectorNodeProps> = ({ data }) => {
                   </StackItem>
                 )}
               </Stack>
-              {/* </Bullseye> */}
             </CardBody>
           </Card>
           {data.type === AppStrings.destination && (

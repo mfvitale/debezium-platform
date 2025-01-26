@@ -173,21 +173,11 @@ const PipelineDesigner: React.FunctionComponent = () => {
     _newIndex?: number | undefined
   ) => {
     setItems(newItems);
-    console.log("newItems", newItems, oldIndex, newIndex);
-    // const updatedTransforms = [...selectedTransform];
-    // if (oldIndex !== undefined && newIndex !== undefined) {
-    //   const [movedItem] = updatedTransforms.splice(oldIndex, 1);
-    //   updatedTransforms.splice(newIndex, 0, movedItem);
-    //   setSelectedTransform(updatedTransforms);
-    // }
   };
 
   const panelContent = (
     <DrawerPanelContent>
       <DrawerHead>
-        {/* <span tabIndex={isExpanded ? 0 : -1} ref={drawerRef}>
-          Drawer panel header
-        </span> */}
         <Content component="h4" tabIndex={isExpanded ? 0 : -1}>
           Transform list
         </Content>
