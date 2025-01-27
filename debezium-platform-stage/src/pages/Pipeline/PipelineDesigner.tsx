@@ -168,8 +168,8 @@ const PipelineDesigner: React.FunctionComponent = () => {
   const reArrangeTransform = (
     _event: DragDropSortDragEndEvent,
     newItems: DraggableObject[],
-    oldIndex?: number | undefined,
-    newIndex?: number | undefined
+    _oldIndex?: number | undefined,
+    _newIndex?: number | undefined
   ) => {
     setItems(newItems);
     console.log("newItems", newItems, oldIndex, newIndex);
