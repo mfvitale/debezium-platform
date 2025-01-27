@@ -13,7 +13,7 @@ COPY . .
 
 RUN yarn build
 
-FROM node:18-alpine
+FROM mirror.gcr.io/library/node:18-alpine
 RUN yarn global add serve
 COPY --from=builder /app/dist /app/dist
 
