@@ -12,6 +12,7 @@ import ReactFlow, {
   Background,
   MiniMap,
   PanOnScrollMode,
+  useReactFlow,
 } from "reactflow";
 import TransformAdditionNode from "./TransformAdditionNode";
 
@@ -20,19 +21,25 @@ import DataNode from "./DataNode";
 import { MdLogin, MdLogout } from "react-icons/md";
 import DataSelectorNode from "./DataSelectorNode";
 import { Button, Modal, ModalBody, ModalHeader } from "@patternfly/react-core";
-import { Destination, Source, Transform, TransformData } from "../../apis/apis";
+import {
+  Destination,
+  Predicate,
+  Source,
+  Transform,
+  TransformData,
+} from "../../apis/apis";
 import { PlusIcon } from "@patternfly/react-icons";
 import "./CreationFlow.css";
-import SourcePipelineModel from "./SourcePipelineModel";
-import DestinationPipelineModel from "./DestinationPipelineModel";
+import PipelineSourceModel from "./PipelineSourceModel";
+import PipelineDestinationModel from "./PipelineDestinationModel";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 import TransformLinkNode from "./TransformLinkNode";
-import TransformPipelineModel from "./TransformPipelineModel";
+import PipelineTransformModel from "./PipelineTransformModel";
 import TransformGroupNode from "./TransformGroupNode";
 
 import TransformSelectorNode from "./TransformSelectorNode";
-import TransformSelectedNode from "./TransformSelectedNode";
+import TransformCollapsedNode from "./TransformCollapsedNode";
 import UnifiedCustomEdge from "./UnifiedCustomEdge";
 import UnifiedMultiEdge from "./UnifiedMultiEdge";
 
@@ -42,7 +49,7 @@ const nodeTypes = {
   addTransformNode: TransformAdditionNode,
   transformGroupNode: TransformGroupNode,
   transformSelectorNode: TransformSelectorNode,
-  transformSelectedNode: TransformSelectedNode,
+  transformCollapsedNode: TransformCollapsedNode,
   dataNode: DataNode,
 };
 
@@ -76,6 +83,30 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
   rearrangeTrigger,
 }) => {
   const { darkMode } = useData();
+
+  const reactFlowInstance = useReactFlow();
+
+  const refitElements = () => {
+    setTimeout(() => {
+      reactFlowInstance.fitView({
+        padding: 0.2, // 20% padding
+        duration: 200, // 200ms
+      });
+    }, 50);
+  };
+
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      refitElements();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   const [isSourceModalOpen, setIsSourceModalOpen] = useState(false);
   const [isTransformModalOpen, setIsTransformModalOpen] = useState(false);
   const [isDestinationModalOpen, setIsDestinationModalOpen] = useState(false);
@@ -104,7 +135,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
               ? handleDestinationModalToggle
               : handleTransformModalToggle
           }
-          style={{ paddingRight: 10, paddingLeft: 10, fontSize: ".8em" }}
+          style={{ paddingRight: 5, paddingLeft: 5, fontSize: ".8em" }}
           icon={<PlusIcon />}
           size="sm"
         >
@@ -235,7 +266,8 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
   const createNewTransformNode = (
     id: string,
     xPosition: number,
-    transformName: string
+    transformName: string,
+    transformPredicate?: Predicate
   ) => {
     return {
       id,
@@ -243,6 +275,12 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         label: transformName,
         sourcePosition: "left",
         targetPosition: "right",
+        ...(transformPredicate?.type && {
+          predicate: {
+            label: transformPredicate.type.split(".").pop(),
+            negate: transformPredicate.negate,
+          },
+        }),
       },
       position: { x: xPosition, y: 31 },
       targetPosition: "left",
@@ -252,6 +290,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       type: "transformLinkNode",
       parentId: "transform_group",
       extent: "parent",
+      draggable: false,
     };
   };
   const selectedTransformRef = useRef(selectedTransform);
@@ -376,7 +415,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
     setEdges([...newEdge]);
   }, [cardButtonTransform, onToggleDrawer]);
 
-  const TransformSelectedNode = useMemo(() => {
+  const TransformCollapsedNode = useMemo(() => {
     return {
       id: "transform_selected",
       data: {
@@ -388,7 +427,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       },
       position: { x: 270, y: 78 },
       targetPosition: "left",
-      type: "transformSelectedNode",
+      type: "transformCollapsedNode",
       draggable: false,
     };
   }, [handleExpand]);
@@ -419,7 +458,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
           (node: any) =>
             !node.id.includes("transform") && node.id !== "destination"
         ),
-        TransformSelectedNode,
+        TransformCollapsedNode,
         updatedDataSelectorDestinationNode,
       ];
     });
@@ -434,7 +473,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       },
     ]);
   }, [
-    TransformSelectedNode,
+    TransformCollapsedNode,
     dataSelectorDestinationNode,
     isDestinationConfiguredRef,
   ]);
@@ -499,7 +538,8 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       const newTransformNode = createNewTransformNode(
         newId,
         xPosition,
-        transform.name
+        transform.name,
+        transform.predicate
       );
 
       setNodes((prevNodes: any) => {
@@ -640,43 +680,48 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
   );
   return (
     <>
-      <ReactFlow
-        key={nodes.length} // Forces re-render when nodes change
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        proOptions={proOptions}
-        fitView
-        panOnScroll={true}
-        panOnScrollMode={PanOnScrollMode.Horizontal}
-        maxZoom={1.4}
-        minZoom={1.1}
-        panOnDrag={true}
-      >
-        <MiniMap />
-        {/* <Controls /> */}
-        <Background
-          style={{
-            borderRadius: "5px",
-            // backgroundColor: "#F2F9F9"
+      <div ref={reactFlowWrapper} style={{ width: "100%", height: "100%" }}>
+        <ReactFlow
+          key={nodes.length} // Forces re-render when nodes change
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          proOptions={proOptions}
+          fitView
+          panOnScroll={true}
+          panOnScrollMode={PanOnScrollMode.Horizontal}
+          maxZoom={1.4}
+          minZoom={1.1}
+          panOnDrag={true}
+          onInit={(instance) => {
+            instance.fitView({ padding: 0.2 });
           }}
-          gap={13}
-          color={darkMode ? AppColors.dark : AppColors.white}
-        />
-        <svg>
-          <defs>
-            <linearGradient id="edge-gradient-unified">
-              <stop offset="0%" stopColor="#a5c82d" />
-              <stop offset="50%" stopColor="#7fc5a5" />
-              <stop offset="100%" stopColor="#58b2da" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </ReactFlow>
+        >
+          <MiniMap />
+          <Background
+            style={{
+              borderRadius: "5px",
+              // backgroundColor: "#F2F9F9"
+            }}
+            gap={13}
+            color={darkMode ? AppColors.dark : AppColors.white}
+          />
+          <svg>
+            <defs>
+              <linearGradient id="edge-gradient-unified">
+                <stop offset="0%" stopColor="#a5c82d" />
+                <stop offset="50%" stopColor="#7fc5a5" />
+                <stop offset="100%" stopColor="#58b2da" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </ReactFlow>
+      </div>
+
       <Modal
         isOpen={isSourceModalOpen}
         onClose={handleSourceModalToggle}
@@ -690,7 +735,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
           description="Select a source to be used in pipeline from the list of already configured source listed below or configure a new source by selecting create a new source radio card."
         />
         <ModalBody tabIndex={0} id="modal-source-body-with-description">
-          <SourcePipelineModel onSourceSelection={onSourceSelection} />
+          <PipelineSourceModel onSourceSelection={onSourceSelection} />
         </ModalBody>
       </Modal>
       <Modal
@@ -706,7 +751,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
           description="Select a source to be used in pipeline from the list of already configured source listed below or configure a new source by selecting create a new source radio card."
         />
         <ModalBody tabIndex={0} id="modal-transform-body-with-description">
-          <TransformPipelineModel onTransformSelection={handleAddTransform} />
+          <PipelineTransformModel onTransformSelection={handleAddTransform} />
         </ModalBody>
       </Modal>
       <Modal
@@ -725,7 +770,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
           tabIndex={0}
           id="modal-box-body-destination-with-description"
         >
-          <DestinationPipelineModel
+          <PipelineDestinationModel
             onDestinationSelection={onDestinationSelection}
           />
         </ModalBody>

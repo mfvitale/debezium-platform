@@ -10,18 +10,17 @@ import {
 } from "@patternfly/react-core";
 import React, { useCallback, useEffect, useState } from "react";
 import { Destination, fetchData } from "../../apis/apis";
-// import { CreateDestinationForm } from "../../pages/Destination/CreateDestinationForm";
 import { useQuery } from "react-query";
 import { API_URL } from "../../utils/constants";
 import SourceDestinationSelectionList from "../SourceDestinationSelectionList";
 import { CatalogGrid } from "@components/CatalogGrid";
 import { CreateDestination } from "@destinationPage/CreateDestination";
 
-type DestinationPipelineModelProps = {
+type PipelineDestinationModelProps = {
   onDestinationSelection: (destination: Destination) => void;
 };
 
-const DestinationPipelineModel: React.FC<DestinationPipelineModelProps> = ({
+const PipelineDestinationModel: React.FC<PipelineDestinationModelProps> = ({
   onDestinationSelection,
 }) => {
   const id1 = "pipeline-destination-select";
@@ -107,7 +106,6 @@ const DestinationPipelineModel: React.FC<DestinationPipelineModelProps> = ({
       <Divider style={{ marginTop: "10px" }} />
       {isCreateChecked === id2 &&
         (selectedDestination === "" ? (
-          //   <TextContent style={{ padding: "10px" }}>
           <Content component="p">
             <b>
               Select the type of destination you want to connect from the list
@@ -116,8 +114,6 @@ const DestinationPipelineModel: React.FC<DestinationPipelineModelProps> = ({
             </b>
           </Content>
         ) : (
-          // </TextContent>
-          // <TextContent style={{ padding: "10px" }}>
           <Content component="p">
             <b>
               Fill out the below form or use the smart editor to setup a new
@@ -126,7 +122,6 @@ const DestinationPipelineModel: React.FC<DestinationPipelineModelProps> = ({
               smart editor.
             </b>
           </Content>
-          // </TextContent>
         ))}
 
       {isCreateChecked === id1 ? (
@@ -153,4 +148,4 @@ const DestinationPipelineModel: React.FC<DestinationPipelineModelProps> = ({
   );
 };
 
-export default DestinationPipelineModel;
+export default PipelineDestinationModel;

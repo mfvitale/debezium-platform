@@ -196,7 +196,7 @@ const Pipelines: React.FunctionComponent = () => {
 
   const onPipelineClick = (id: number) => () => {
     navigateTo(`/pipeline/${id}/overview`);
-  }
+  };
 
   const modalToggle = (toggleValue: boolean) => {
     setDeleteInstanceName("");
@@ -368,7 +368,11 @@ const Pipelines: React.FunctionComponent = () => {
                             ).map((instance: Pipeline) => (
                               <Tr key={instance.id}>
                                 <Td dataLabel="Name">
-                                  <Button variant="link" isInline onClick={onPipelineClick(instance.id)}>
+                                  <Button
+                                    variant="link"
+                                    isInline
+                                    onClick={onPipelineClick(instance.id)}
+                                  >
                                     {instance.name}
                                   </Button>
                                 </Td>
@@ -409,12 +413,10 @@ const Pipelines: React.FunctionComponent = () => {
                                 </Td>
                                 <Td dataLabel="Enabled">
                                   <Switch
-                                    // className="custom-switch"
                                     id="pipeline-enable-switch"
                                     aria-label="switch pipeline enable"
                                     isChecked={true}
                                     onChange={() => {}}
-                                    // isReversed
                                     isDisabled
                                   />
                                 </Td>

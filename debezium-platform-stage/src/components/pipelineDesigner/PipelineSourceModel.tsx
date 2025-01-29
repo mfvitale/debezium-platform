@@ -16,11 +16,11 @@ import SourceDestinationSelectionList from "../SourceDestinationSelectionList";
 import { CatalogGrid } from "@components/CatalogGrid";
 import { CreateSource } from "@sourcePage/CreateSource";
 
-type SourcePipelineModelProps = {
+type PipelineSourceModelProps = {
   onSourceSelection: (source: Source) => void;
 };
 
-const SourcePipelineModel: React.FC<SourcePipelineModelProps> = ({
+const PipelineSourceModel: React.FC<PipelineSourceModelProps> = ({
   onSourceSelection,
 }) => {
   const id1 = "pipeline-source-select";
@@ -147,4 +147,4 @@ const SourcePipelineModel: React.FC<SourcePipelineModelProps> = ({
   );
 };
 
-export default SourcePipelineModel;
+export default PipelineSourceModel;

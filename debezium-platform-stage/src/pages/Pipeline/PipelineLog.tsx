@@ -51,27 +51,6 @@ const PipelineLog: FC<PipelineLogProps> = ({
   const [isLogLoading, setIsLogLoading] = useState<boolean>(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
-  // useEffect(() => {
-  //   const ws = new WebSocket("ws://localhost:8080/api/pipelines/1/logs/stream");
-  //   ws.onopen = () => {
-  //     console.log("WebSocket connection opened");
-  //   };
-  //   ws.onmessage = (event) => {
-  //     setLogs((prevLogs) => prevLogs + "\n" + event.data); // Append new logs
-  //   };
-  //   ws.onerror = (error) => {
-  //     console.error("WebSocket error:", error);
-  //   };
-  //   ws.onclose = () => {
-  //     console.log("WebSocket connection closed");
-  //   };
-  //   return () => {
-  //     if (ws.readyState === WebSocket.OPEN) {
-  //       ws.close();
-  //     }
-  //   };
-  // }, []);
-
   useEffect(() => {
     let ws: WebSocket;
     // Fetch initial logs via HTTP
@@ -88,10 +67,12 @@ const PipelineLog: FC<PipelineLogProps> = ({
         });
 
         setLogs((prevLogs) => [...prevLogs, ...initialLogLines]);
-        
+
         // open WebSocket for real-time updates
-        const webSocketURL = API_URL.replace(/^https?/, "ws")
-        ws = new WebSocket(`${webSocketURL}/api/pipelines/${pipelineId}/logs/stream`);
+        const webSocketURL = API_URL.replace(/^https?/, "ws");
+        ws = new WebSocket(
+          `${webSocketURL}/api/pipelines/${pipelineId}/logs/stream`
+        );
 
         ws.onmessage = (event) => {
           const newLogs = event.data.split("\n");

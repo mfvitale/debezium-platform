@@ -7,6 +7,7 @@ import {
   ButtonType,
   Card,
   CardBody,
+  Checkbox,
   Form,
   FormContextProvider,
   FormFieldGroup,
@@ -16,6 +17,7 @@ import {
   FormHelperText,
   FormSelect,
   FormSelectOption,
+  FormSelectOptionProps,
   HelperText,
   HelperTextItem,
   MenuToggle,
@@ -44,6 +46,7 @@ import {
 } from "@patternfly/react-icons";
 import * as React from "react";
 import transforms from "../../__mocks__/data/DebeziumTransfroms.json";
+import predicates from "../../__mocks__/data/Predicates.json";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { editPut, fetchDataTypeTwo, TransformData } from "src/apis";
@@ -98,6 +101,32 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
     });
     setSelectOptions(selectOption);
   }, []);
+
+  const [selectedPredicate, setSelectedPredicate] = React.useState<string>("");
+  const [selectPredicateOptions, setSelectPredicateOptions] =
+    React.useState<FormSelectOptionProps[]>();
+
+  useEffect(() => {
+    const selectOption: FormSelectOptionProps[] = predicates.map((item) => {
+      return {
+        value: item.predicate,
+        label: item.predicate,
+      };
+    });
+    selectOption.unshift({
+      value: "",
+      label: "Select a predicate type",
+      isPlaceholder: true,
+    });
+    setSelectPredicateOptions(selectOption);
+  }, []);
+
+  const onChange = (
+    _event: React.FormEvent<HTMLSelectElement>,
+    value: string
+  ) => {
+    setSelectedPredicate(value);
+  };
 
   useEffect(() => {
     const selectOption: SelectOptionProps[] = transforms.map((item) => {
@@ -285,7 +314,7 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
           id="typeahead-select-input"
           autoComplete="off"
           innerRef={textInputRef}
-          placeholder="Select a state"
+          placeholder="Select a transform"
           {...(activeItemId && { "aria-activedescendant": activeItemId })}
           role="combobox"
           isExpanded={isOpen}
@@ -313,12 +342,22 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
         setError(response.error);
       } else {
         setSelected(response.data?.type || "");
+        setSelectedPredicate(response.data?.predicate?.type || "");
         setInputValue(response.data?.type || "");
         setTransformData(response.data as TransformData);
         setInitialValues({
           "transform-name": response.data?.name || "",
           description: response.data?.description || "",
           ...response.data?.config,
+          ...Object.keys(response.data?.predicate?.config || {}).reduce(
+            (acc: Record<string, any>, key) => {
+              acc[`predicateConfig.${key}`] =
+                response.data?.predicate?.config[key];
+              return acc;
+            },
+            {} as Record<string, any>
+          ),
+          "predicate.negate": "" + response.data?.predicate?.negate || "false",
         });
       }
 
@@ -336,41 +375,42 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
         ...restValues
       } = values;
       const configProperties = transformData?.config || {};
-      const oldConfig = Object.keys(configProperties).reduce(
-        (acc: Record<string, string>, key) => {
-          const newKey = key.replace(
-            /(?<=debezium\.transforms\.)[^.]+/,
-            transformName
-          );
-          acc[newKey] = configProperties![key];
-          return acc;
-        },
-        {}
-      );
 
-      const oldTransName = initialValues["transform-name"];
+      const oldConfig = { ...configProperties };
+      const oldPredicates = transformData?.predicate || {};
 
-      const newValues = Object.keys(restValues).reduce<Record<string, string>>(
-        (acc, key) => {
-          if (key.includes(oldTransName)) {
-            const newKey = key.replace(
-              /(?<=debezium\.transforms\.)[^.]+/,
-              transformName
-            );
-            acc[newKey] = restValues[key];
+      const newValues: Record<string, string> = {};
+      const newPredicates: any = { config: {} };
+
+      Object.entries(restValues).forEach(([key, value]) => {
+        if (key.startsWith("predicate")) {
+          if (key.startsWith("predicateConfig.")) {
+            newPredicates.config[key.replace("predicateConfig.", "")] = value;
           } else {
-            acc[key] = restValues[key];
+            newPredicates[key.replace("predicate.", "")] = value;
           }
-          return acc;
-        },
-        {}
-      );
+        } else {
+          newValues[key] = value;
+        }
+      });
+      if (selectedPredicate) {
+        newPredicates.type = selectedPredicate;
+      }
 
       const updatedConfig = { ...oldConfig, ...newValues };
+      const updatedPredicates =
+        Object.keys(newPredicates).length > 1 || !isEmpty(newPredicates.config)
+          ? {
+              ...oldPredicates,
+              ...newPredicates,
+              config: { ...newPredicates.config },
+            }
+          : {};
 
       const payload = {
         description: description,
         config: { ...updatedConfig },
+        predicate: { ...updatedPredicates },
         name: transformName,
       };
 
@@ -394,7 +434,14 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
         navigateTo("/transform");
       }
     },
-    [addNotification, transformData, initialValues, onSelection, selected]
+    [
+      addNotification,
+      transformData,
+      initialValues,
+      onSelection,
+      selectedPredicate,
+      selected,
+    ]
   );
 
   const handleItemClick = (
@@ -614,7 +661,7 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
                                 <FormGroup
                                   key={key}
                                   label={property?.title || key}
-                                  fieldId={`debezium.transforms.${transformName}.${key}`}
+                                  fieldId={key}
                                   labelHelp={
                                     <Popover bodyContent={description}>
                                       <FormGroupLabelHelp aria-label="More info for name field" />
@@ -623,46 +670,30 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
                                 >
                                   {isBoolean ? (
                                     <Switch
-                                      id={`debezium.transforms.${transformName}.${key}`}
+                                      id={key}
                                       label="On"
                                       isDisabled={transformName === ""}
                                       isChecked={
-                                        getValue(
-                                          `debezium.transforms.${transformName}.${key}`
-                                        ) === "true" ||
+                                        getValue(key) === "true" ||
                                         property?.defaultValue === "true"
                                       }
                                       onChange={(checked) => {
                                         const value = checked
                                           ? "true"
                                           : "false";
-                                        setValue(
-                                          `debezium.transforms.${transformName}.${key}`,
-                                          value
-                                        );
-                                        setError(
-                                          `debezium.transforms.${transformName}.${key}`,
-                                          undefined
-                                        );
+                                        setValue(key, value);
+                                        setError(key, undefined);
                                       }}
                                     />
                                   ) : dropDown ? (
                                     <FormSelect
                                       value={
-                                        getValue(
-                                          `debezium.transforms.${transformName}.${key}`
-                                        ) || property?.defaultValue
+                                        getValue(key) || property?.defaultValue
                                       }
                                       isDisabled={transformName === ""}
                                       onChange={(_event, value) => {
-                                        setValue(
-                                          `debezium.transforms.${transformName}.${key}`,
-                                          value
-                                        );
-                                        setError(
-                                          `debezium.transforms.${transformName}.${key}`,
-                                          undefined
-                                        );
+                                        setValue(key, value);
+                                        setError(key, undefined);
                                       }}
                                       aria-label="FormSelect Input"
                                       ouiaId="BasicFormSelect"
@@ -682,32 +713,20 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
                                     </FormSelect>
                                   ) : (
                                     <TextInput
-                                      id={`debezium.transforms.${transformName}.${key}`}
+                                      id={key}
                                       aria-label={key}
                                       isDisabled={transformName === ""}
                                       onChange={(_event, value) => {
-                                        setValue(
-                                          `debezium.transforms.${transformName}.${key}`,
-                                          value
-                                        );
-                                        setError(
-                                          `debezium.transforms.${transformName}.${key}`,
-                                          undefined
-                                        );
+                                        setValue(key, value);
+                                        setError(key, undefined);
                                       }}
                                       defaultValue={
                                         (!isEmpty(initialValues) &&
-                                          getValue(
-                                            `debezium.transforms.${transformName}.${key}`
-                                          )) ||
+                                          getValue(key)) ||
                                         property?.defaultValue
                                       }
                                       validated={
-                                        errors[
-                                          `debezium.transforms.${transformName}.${key}`
-                                        ]
-                                          ? "error"
-                                          : "default"
+                                        errors[key] ? "error" : "default"
                                       }
                                     />
                                   )}
@@ -716,23 +735,13 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
                                     <HelperText>
                                       <HelperTextItem
                                         variant={
-                                          errors[
-                                            `debezium.transforms.${transformName}.${key}`
-                                          ]
-                                            ? "error"
-                                            : "default"
+                                          errors[key] ? "error" : "default"
                                         }
-                                        {...(errors[
-                                          `debezium.transforms.${transformName}.${key}`
-                                        ] && {
+                                        {...(errors[key] && {
                                           icon: <ExclamationCircleIcon />,
                                         })}
                                       >
-                                        {
-                                          errors[
-                                            `debezium.transforms.${transformName}.${key}`
-                                          ]
-                                        }
+                                        {errors[key]}
                                       </HelperTextItem>
                                     </HelperText>
                                   </FormHelperText>
@@ -741,6 +750,120 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
                             })}
                           </FormFieldGroup>
                         )}
+                        <FormFieldGroup
+                          header={
+                            <FormFieldGroupHeader
+                              titleText={{
+                                text: "Predicates & Negate",
+                                id: `field-group-${selected}-id`,
+                              }}
+                              titleDescription={
+                                "Transformations are applied only to records that meet the condition specified by the predicate. Set 'negate' to 'true' to reverse this behavior."
+                              }
+                            />
+                          }
+                        >
+                          <FormGroup
+                            label="Predicate type"
+                            labelHelp={
+                              <Popover
+                                bodyContent={
+                                  "The name of Java class implementing the predicate"
+                                }
+                              >
+                                <FormGroupLabelHelp aria-label="More info for name field" />
+                              </Popover>
+                            }
+                            fieldId="predicate-type"
+                          >
+                            <FormSelect
+                              value={selectedPredicate}
+                              onChange={onChange}
+                              aria-label="FormSelect Input"
+                              ouiaId="BasicFormSelect"
+                            >
+                              {selectPredicateOptions?.map((option, index) => (
+                                <FormSelectOption
+                                  isDisabled={option.isDisabled}
+                                  key={index}
+                                  value={option.value}
+                                  label={option.label}
+                                  isPlaceholder={option.isPlaceholder}
+                                />
+                              ))}
+                            </FormSelect>
+                          </FormGroup>
+                          {selectedPredicate &&
+                            selectedPredicate !==
+                              "org.apache.kafka.connect.transforms.predicates.RecordIsTombstone" &&
+                            (() => {
+                              const predicate = predicates.find(
+                                (predicate) =>
+                                  predicate.predicate === selectedPredicate
+                              );
+                              const predicateProperties =
+                                predicate?.properties as Record<string, any>;
+                              const propertyKey = Object.keys(
+                                predicateProperties || {}
+                              )[0];
+                              const property =
+                                predicateProperties?.[propertyKey];
+
+                              return (
+                                <FormGroup
+                                  label={property?.title || ""}
+                                  isRequired
+                                  labelHelp={
+                                    <Popover
+                                      bodyContent={property?.description || ""}
+                                    >
+                                      <FormGroupLabelHelp aria-label="More info for name field" />
+                                    </Popover>
+                                  }
+                                  fieldId="predicate-config"
+                                >
+                                  <TextInput
+                                    isRequired
+                                    id={property["x-name"]}
+                                    name={property["x-name"]}
+                                    aria-label={property["x-name"]}
+                                    onChange={(_event, value) => {
+                                      setValue(
+                                        `predicateConfig.${property["x-name"]}`,
+                                        value
+                                      );
+                                      // setError("description", undefined);
+                                    }}
+                                    value={getValue(
+                                      `predicateConfig.${property["x-name"]}`
+                                    )}
+                                  />
+                                </FormGroup>
+                              );
+                            })()}
+                          {selectedPredicate && (
+                            <FormGroup
+                              label="Negate predicate"
+                              fieldId="negate"
+                            >
+                              <Checkbox
+                                id="description-check-1"
+                                label="Set negate to true"
+                                isChecked={
+                                  getValue("predicate.negate") === "true"
+                                }
+                                onChange={(
+                                  _event: React.FormEvent<HTMLInputElement>,
+                                  checked: boolean
+                                ) => {
+                                  setValue("predicate.negate", "" + checked);
+                                  setError("predicate.negate", undefined);
+                                }}
+                                description="Setting this option to True applies the predicate only to records that do not match the defined predicate condition"
+                              />
+                            </FormGroup>
+                          )}
+                        </FormFieldGroup>
                       </Form>
                     </CardBody>
                   </Card>

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   applyNodeChanges,
   applyEdgeChanges,
@@ -10,6 +10,7 @@ import ReactFlow, {
   Edge,
   Connection,
   Background,
+  useReactFlow,
 } from "reactflow";
 import DataNode from "./DataNode";
 import { MdLogin, MdLogout } from "react-icons/md";
@@ -36,6 +37,29 @@ interface WelcomeFlowProps {}
 
 const WelcomeFlow: React.FC<WelcomeFlowProps> = () => {
   const { darkMode } = useData();
+
+  const reactFlowInstance = useReactFlow();
+
+  const refitElements = () => {
+    setTimeout(() => {
+      reactFlowInstance.fitView({
+        padding: 0.2, // 20% padding
+        duration: 200, // 200ms
+      });
+    }, 50);
+  };
+
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      refitElements();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const defaultSourceNode = useMemo(() => {
     return {
@@ -121,39 +145,47 @@ const WelcomeFlow: React.FC<WelcomeFlowProps> = () => {
     [setEdges]
   );
 
+  const savedPreference = localStorage.getItem("side-nav-collapsed");
+  console.log("side bar", savedPreference);
+
   return (
     <>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        proOptions={proOptions}
-        fitView
-        maxZoom={1.4}
-        minZoom={1.4}
-        panOnDrag={false}
-      >
-        <Background
-          style={{
-            borderRadius: "5px",
+      <div ref={reactFlowWrapper} style={{ width: "100%", height: "100%" }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          proOptions={proOptions}
+          fitView
+          maxZoom={1.4}
+          minZoom={1.4}
+          panOnDrag={false}
+          onInit={(instance) => {
+            instance.fitView({ padding: 0.2 });
           }}
-          gap={15}
-          color={darkMode ? AppColors.dark : AppColors.white}
-        />
-        <svg>
-          <defs>
-            <linearGradient id="edge-gradient-unified">
-              <stop offset="0%" stopColor="#a5c82d" />
-              <stop offset="50%" stopColor="#7fc5a5" />
-              <stop offset="100%" stopColor="#58b2da" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </ReactFlow>
+        >
+          <Background
+            style={{
+              borderRadius: "5px",
+            }}
+            gap={15}
+            color={darkMode ? AppColors.dark : AppColors.white}
+          />
+          <svg>
+            <defs>
+              <linearGradient id="edge-gradient-unified">
+                <stop offset="0%" stopColor="#a5c82d" />
+                <stop offset="50%" stopColor="#7fc5a5" />
+                <stop offset="100%" stopColor="#58b2da" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </ReactFlow>
+      </div>
     </>
   );
 };

@@ -142,7 +142,7 @@ const ConfigurePipeline: React.FunctionComponent = () => {
   const handleCreatePipeline = async (values: Record<string, string>) => {
     console.log("values", values);
     setIsLoading(true);
-    if(!values["log-level"]) {
+    if (!values["log-level"]) {
       setLogLevelError(true);
       setIsLoading(false);
       return;
@@ -356,27 +356,25 @@ const ConfigurePipeline: React.FunctionComponent = () => {
                           fieldId="log-level-field"
                         >
                           <FormSelect
-                           value={getValue("log-level")}
-                          isRequired
-                          id={'log-level'}
-                          onChange={(_event, value) => {
-                            setValue("log-level", value);
-                            setLogLevelError(false);
-                          }}
-                          aria-label="FormSelect Input"
-                          ouiaId="BasicFormSelect"
-                          validated={
-                            logLevelError ? "error" : "default"
-                          }
+                            value={getValue("log-level")}
+                            isRequired
+                            id={"log-level"}
+                            onChange={(_event, value) => {
+                              setValue("log-level", value);
+                              setLogLevelError(false);
+                            }}
+                            aria-label="FormSelect Input"
+                            ouiaId="BasicFormSelect"
+                            validated={logLevelError ? "error" : "default"}
                           >
-                          {options.map((option, index) => (
-                            <FormSelectOption
-                            isDisabled={option.disabled}
-                            key={index}
-                            value={option.value}
-                            label={option.label}
-                            />
-                          ))}
+                            {options.map((option, index) => (
+                              <FormSelectOption
+                                isDisabled={option.disabled}
+                                key={index}
+                                value={option.value}
+                                label={option.label}
+                              />
+                            ))}
                           </FormSelect>
                         </FormGroup>
                       </FormSection>

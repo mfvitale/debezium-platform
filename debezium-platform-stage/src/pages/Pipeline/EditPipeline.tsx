@@ -418,7 +418,6 @@ const EditPipeline: React.FunctionComponent = () => {
                   isMinimapVisible
                   language={Language.yaml}
                   height="450px"
-                  // className="custom-card-body"
                 />
               )}
             </PageSection>
@@ -426,7 +425,6 @@ const EditPipeline: React.FunctionComponent = () => {
               <ActionGroup className="create_pipeline-footer">
                 <Button
                   variant="primary"
-                  // onClick={handleCreateSource}
                   isLoading={isLoading}
                   isDisabled={isLoading}
                   type={ButtonType.submit}

@@ -34,6 +34,7 @@ import {
   DraggableObject,
 } from "@patternfly/react-drag-drop";
 import { TrashIcon } from "@patternfly/react-icons";
+import { ReactFlowProvider } from "reactflow";
 
 // Define Jotai atoms
 export const selectedSourceAtom = atom<Source | undefined>(undefined);
@@ -172,21 +173,11 @@ const PipelineDesigner: React.FunctionComponent = () => {
     _newIndex?: number | undefined
   ) => {
     setItems(newItems);
-    console.log("newItems", newItems, oldIndex, newIndex);
-    // const updatedTransforms = [...selectedTransform];
-    // if (oldIndex !== undefined && newIndex !== undefined) {
-    //   const [movedItem] = updatedTransforms.splice(oldIndex, 1);
-    //   updatedTransforms.splice(newIndex, 0, movedItem);
-    //   setSelectedTransform(updatedTransforms);
-    // }
   };
 
   const panelContent = (
     <DrawerPanelContent>
       <DrawerHead>
-        {/* <span tabIndex={isExpanded ? 0 : -1} ref={drawerRef}>
-          Drawer panel header
-        </span> */}
         <Content component="h4" tabIndex={isExpanded ? 0 : -1}>
           Transform list
         </Content>
@@ -243,19 +234,21 @@ const PipelineDesigner: React.FunctionComponent = () => {
               <PageSection isFilled>
                 <Card isFullHeight>
                   <CardBody isFilled style={{ padding: "15px" }}>
-                    <CreationFlowTransform
-                      updateIfSourceConfigured={updateIfSourceConfigured}
-                      updateIfDestinationConfigured={
-                        updateIfDestinationConfigured
-                      }
-                      updateSelectedSource={updateSelectedSource}
-                      updateSelectedDestination={updateSelectedDestination}
-                      onToggleDrawer={onToggleDrawer}
-                      updateSelectedTransform={updateSelectedTransform}
-                      selectedTransform={selectedTransform}
-                      isDestinationConfigured={isDestinationConfigured}
-                      rearrangeTrigger={rearrangeTrigger}
-                    />
+                    <ReactFlowProvider>
+                      <CreationFlowTransform
+                        updateIfSourceConfigured={updateIfSourceConfigured}
+                        updateIfDestinationConfigured={
+                          updateIfDestinationConfigured
+                        }
+                        updateSelectedSource={updateSelectedSource}
+                        updateSelectedDestination={updateSelectedDestination}
+                        onToggleDrawer={onToggleDrawer}
+                        updateSelectedTransform={updateSelectedTransform}
+                        selectedTransform={selectedTransform}
+                        isDestinationConfigured={isDestinationConfigured}
+                        rearrangeTrigger={rearrangeTrigger}
+                      />
+                    </ReactFlowProvider>
                   </CardBody>
 
                   <CardFooter
