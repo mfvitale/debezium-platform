@@ -16,7 +16,7 @@ import { PencilAltIcon, CodeIcon } from "@patternfly/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import "./CreateSource.css";
 import { CodeEditor, Language } from "@patternfly/react-code-editor";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPost, Source } from "../../apis/apis";
 import { API_URL } from "../../utils/constants";
 import { convertMapToObject } from "../../utils/helpers";
@@ -159,6 +159,42 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
     setEditorSelected(id);
   };
 
+  const [code, setCode] = useState({
+    name: "",
+    description: "",
+    type: "",
+    schema: "schema123",
+    vaults: [],
+    config: {},
+  });
+
+  useEffect(() => {
+    const type = find(sourceCatalog, { id: sourceId })?.type || "";
+    const configuration = convertMapToObject(properties); 
+    setCode({ ...code, type: type, config: configuration } as any);
+  }, [ properties, sourceId]);
+
+  const onEditorDidMount = (
+    editor: { layout: () => void; focus: () => void },
+    monaco: {
+      editor: {
+        getModels: () => {
+          updateOptions: (arg0: { tabSize: number }) => void;
+        }[];
+      };
+    }
+  ) => {
+    editor.layout();
+    editor.focus();
+    monaco.editor.getModels()[0].updateOptions({ tabSize: 5 });
+  };
+
+  const onChange = (value: any) => {
+    // eslint-disable-next-line no-console
+    console.log(value);
+    setCode(JSON.parse(value));
+  };
+
   return (
     <>
       {!modelLoaded && (
@@ -235,8 +271,13 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
                   isCopyEnabled
                   isLanguageLabelVisible
                   isMinimapVisible
-                  language={Language.yaml}
-                  height="450px"
+                  language={Language.json}
+                  // height="450px"
+                  // isDarkTheme
+                  isFullHeight
+                  code={JSON.stringify(code, null, 2)}
+                  onChange={onChange}
+                  onEditorDidMount={onEditorDidMount}
                 />
               )}
             </PageSection>
