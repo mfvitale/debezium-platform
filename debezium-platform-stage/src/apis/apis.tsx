@@ -31,6 +31,15 @@ export type DestinationConfig = {
   [key: string]: string; // Dynamic keys with string values
 };
 
+export type Payload = {
+  type: string;
+  schema: string;
+  vaults: Vault[];
+  config: DestinationConfig;
+  description?: string;
+  name: string;
+};
+
 export type Destination = {
   type: string;
   schema: string;

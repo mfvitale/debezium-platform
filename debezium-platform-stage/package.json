@@ -27,6 +27,7 @@
     "@patternfly/react-tokens": "^6.1.0",
     "@patternfly/react-topology": "^6.1.0",
     "@types/lodash": "^4.17.13",
+    "ajv": "^8.17.1",
     "axios": "^1.6.8",
     "jotai": "^2.10.1",
     "lodash": "^4.17.21",
