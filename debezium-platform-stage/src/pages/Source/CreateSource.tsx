@@ -19,7 +19,7 @@ import "./CreateSource.css";
 import { CodeEditor, Language } from "@patternfly/react-code-editor";
 import { useEffect, useRef, useState } from "react";
 import { createPost, Payload, Source } from "../../apis/apis";
-import { API_URL, schema } from "../../utils/constants";
+import { API_URL, schema, initialSchema } from "../../utils/constants";
 import { convertMapToObject } from "../../utils/helpers";
 import sourceCatalog from "../../__mocks__/data/SourceCatalog.json";
 import { find } from "lodash";
@@ -47,6 +47,7 @@ const FormSyncManager: React.FC<{
   sourceId: string | undefined;
   properties: Map<string, Properties>;
   setProperties: (properties: Map<string, Properties>) => void;
+  setCodeAlert: (alert: string) => void;
 }> = ({
   getFormValue,
   setFormValue,
@@ -55,7 +56,9 @@ const FormSyncManager: React.FC<{
   sourceId,
   properties,
   setProperties,
+  setCodeAlert
 }) => {
+  const validate = ajv.compile(initialSchema);
   // Ref to track the source of the update
   const updateSource = useRef<"form" | "code" | null>(null);
 
@@ -96,25 +99,33 @@ const FormSyncManager: React.FC<{
 
   // Update form values when code changes
   useEffect(() => {
-    if (updateSource.current === "form") {
-      updateSource.current = null;
-      return;
+    const isValid = validate(code);
+    if(isValid){
+      if (updateSource.current === "form") {
+        updateSource.current = null;
+        return;
+      }
+      updateSource.current = "code";
+      if (code.name !== getFormValue("source-name")) {
+        setFormValue("source-name", typeof code.name === "string" ? code.name : "");
+      }
+      if (code.description !== getFormValue("details")) {
+        setFormValue("details", typeof code.description === "string" ? code.description : "");
+      }
+      const currentConfig = convertMapToObject(properties);
+      if (JSON.stringify(currentConfig) !== JSON.stringify(code.config)) {
+        const configMap = new Map();
+        Object.entries(code.config || {}).forEach(([key, value], index) => {
+          configMap.set(`key${index}`, { key, value: value as string });
+        });
+        setProperties(configMap);
+      }
+      setCodeAlert("");
+    }else {
+      setCodeAlert(ajv.errorsText(validate.errors));
     }
-    updateSource.current = "code";
-    if (code.name !== getFormValue("source-name")) {
-      setFormValue("source-name", code.name || "");
-    }
-    if (code.description !== getFormValue("details")) {
-      setFormValue("details", code.description || "");
-    }
-    const currentConfig = convertMapToObject(properties);
-    if (JSON.stringify(currentConfig) !== JSON.stringify(code.config)) {
-      const configMap = new Map();
-      Object.entries(code.config || {}).forEach(([key, value], index) => {
-        configMap.set(`key${index}`, { key, value: value as string });
-      });
-      setProperties(configMap);
-    }
+
+    
   }, [code]);
 
   return null;
@@ -342,6 +353,7 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
               sourceId={sourceId}
               properties={properties}
               setProperties={setProperties}
+              setCodeAlert={setCodeAlert}
             />
             <PageSection
               isWidthLimited={
@@ -378,9 +390,10 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
                   isLanguageLabelVisible
                   isMinimapVisible
                   language={Language.json}
+                  downloadFileName="source-connector.json"
                   isFullHeight
                   code={JSON.stringify(code, null, 2)}
-                  onChange={(value) => {
+                  onCodeChange={(value) => {
                     try {
                       const parsedCode = JSON.parse(value);
                       setCode(parsedCode);

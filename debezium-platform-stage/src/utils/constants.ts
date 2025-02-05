@@ -46,3 +46,19 @@ export const schema = {
   },
   required: ["name", "type", "schema", "config"],
 };
+
+export const initialSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    description: { type: "string" },
+    type: { type: "string" },
+    schema: { type: "string" },
+    vault: { type: "array" },
+    config: {
+      type: "object",
+      // minProperties: 1,
+    },
+  },
+  required: ["name", "type", "schema", "config"],
+};
