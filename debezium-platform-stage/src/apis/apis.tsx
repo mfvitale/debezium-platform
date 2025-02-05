@@ -102,6 +102,16 @@ export type TransformData = {
   id: number;
 };
 
+export type TransformPayload = {
+  type: string;
+  schema: string;
+  vaults: Vault[];
+  config: SourceConfig;
+  description?: string;
+  predicate?: Predicate;
+  name: string;
+};
+
 export type TransformApiResponse = TransformData[];
 
 export type SourceApiResponse = Source[];

@@ -63,6 +63,32 @@ export const initialConnectorSchema = {
   required: ["name", "type", "schema", "config"],
 };
 
+export const transformSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    description: { type: "string" },
+    type: { type: "string" },
+    schema: { type: "string" },
+    vault: { type: "array" },
+    config: {
+      type: "object",
+      minProperties: 1,
+    },
+    predicate: {
+      type: "object",
+      properties: {
+        type: { type: "string" },
+        config: {
+          type: "object",
+        },
+        negate: { type: "boolean" },
+      },
+    }
+  },
+  required: ["name", "type", "schema", "config"],
+};
+
 export const pipelineSchema = {
   type: "object",
   properties: {
