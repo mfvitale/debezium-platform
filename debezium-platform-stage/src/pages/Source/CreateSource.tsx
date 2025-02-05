@@ -17,7 +17,7 @@ import { PencilAltIcon, CodeIcon } from "@patternfly/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import "./CreateSource.css";
 import { CodeEditor, Language } from "@patternfly/react-code-editor";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPost, Payload, Source } from "../../apis/apis";
 import { API_URL, schema } from "../../utils/constants";
 import { convertMapToObject } from "../../utils/helpers";
@@ -39,6 +39,87 @@ interface CreateSourceProps {
 
 type Properties = { key: string; value: string };
 
+const FormSyncManager: React.FC<{
+  getFormValue: (key: string) => string;
+  setFormValue: (key: string, value: string) => void;
+  code: any;
+  setCode: (code: any) => void;
+  sourceId: string | undefined;
+  properties: Map<string, Properties>;
+  setProperties: (properties: Map<string, Properties>) => void;
+}> = ({
+  getFormValue,
+  setFormValue,
+  code,
+  setCode,
+  sourceId,
+  properties,
+  setProperties,
+}) => {
+  // Ref to track the source of the update
+  const updateSource = useRef<"form" | "code" | null>(null);
+
+  // Update code state when form values change
+  useEffect(() => {
+    if (updateSource.current === "code") {
+      updateSource.current = null;
+      return;
+    }
+
+    updateSource.current = "form";
+    const type = find(sourceCatalog, { id: sourceId })?.type || "";
+    const configuration = convertMapToObject(properties);
+
+    setCode((prevCode: any) => {
+      if (
+        prevCode.name === getFormValue("source-name") &&
+        prevCode.description === getFormValue("details") &&
+        JSON.stringify(prevCode.config) === JSON.stringify(configuration)
+      ) {
+        return prevCode;
+      }
+
+      return {
+        ...prevCode,
+        type,
+        config: configuration,
+        name: getFormValue("source-name") || "",
+        description: getFormValue("details") || "",
+      };
+    });
+  }, [
+    getFormValue("source-name"),
+    getFormValue("details"),
+    properties,
+    sourceId,
+  ]);
+
+  // Update form values when code changes
+  useEffect(() => {
+    if (updateSource.current === "form") {
+      updateSource.current = null;
+      return;
+    }
+    updateSource.current = "code";
+    if (code.name !== getFormValue("source-name")) {
+      setFormValue("source-name", code.name || "");
+    }
+    if (code.description !== getFormValue("details")) {
+      setFormValue("details", code.description || "");
+    }
+    const currentConfig = convertMapToObject(properties);
+    if (JSON.stringify(currentConfig) !== JSON.stringify(code.config)) {
+      const configMap = new Map();
+      Object.entries(code.config || {}).forEach(([key, value], index) => {
+        configMap.set(`key${index}`, { key, value: value as string });
+      });
+      setProperties(configMap);
+    }
+  }, [code]);
+
+  return null;
+};
+
 const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
   modelLoaded,
   selectedId,
@@ -46,6 +127,10 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
   onSelection,
 }) => {
   const navigate = useNavigate();
+  const navigateTo = (url: string) => {
+    navigate(url);
+  };
+  const { addNotification } = useNotification();
 
   const [code, setCode] = useState({
     name: "",
@@ -62,17 +147,8 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
   const sourceId = modelLoaded ? sourceIdModel : sourceIdParam.sourceId;
 
   const [errorWarning, setErrorWarning] = useState<string[]>([]);
-
-  const navigateTo = (url: string) => {
-    navigate(url);
-  };
-
-  const { addNotification } = useNotification();
-
   const [editorSelected, setEditorSelected] = React.useState("form-editor");
-
   const [isLoading, setIsLoading] = useState(false);
-
   const [properties, setProperties] = useState<Map<string, Properties>>(
     new Map([["key0", { key: "", value: "" }]])
   );
@@ -160,7 +236,7 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
           return;
         }
         const payload = {
-          description: values["details"],
+          description: values["description"],
           type: find(sourceCatalog, { id: sourceId })?.type || "",
           schema: "schema321",
           vaults: [],
@@ -194,12 +270,6 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
     setEditorSelected(id);
   };
 
-  useEffect(() => {
-    const type = find(sourceCatalog, { id: sourceId })?.type || "";
-    const configuration = convertMapToObject(properties);
-    setCode({ ...code, type: type, config: configuration } as any);
-  }, [properties, sourceId]);
-
   const onEditorDidMount = (
     editor: { layout: () => void; focus: () => void },
     monaco: {
@@ -213,12 +283,6 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
     editor.layout();
     editor.focus();
     monaco.editor.getModels()[0].updateOptions({ tabSize: 5 });
-  };
-
-  const onChange = (value: any) => {
-    // eslint-disable-next-line no-console
-    console.log(value);
-    setCode(JSON.parse(value));
   };
 
   return (
@@ -270,6 +334,15 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
       <FormContextProvider initialValues={{}}>
         {({ setValue, getValue, setError, values, errors }) => (
           <>
+            <FormSyncManager
+              getFormValue={getValue}
+              setFormValue={setValue}
+              code={code}
+              setCode={setCode}
+              sourceId={sourceId}
+              properties={properties}
+              setProperties={setProperties}
+            />
             <PageSection
               isWidthLimited={
                 (modelLoaded && editorSelected === "form-editor") ||
@@ -305,11 +378,16 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
                   isLanguageLabelVisible
                   isMinimapVisible
                   language={Language.json}
-                  // height="450px"
-                  // isDarkTheme
                   isFullHeight
                   code={JSON.stringify(code, null, 2)}
-                  onChange={onChange}
+                  onChange={(value) => {
+                    try {
+                      const parsedCode = JSON.parse(value);
+                      setCode(parsedCode);
+                    } catch (error) {
+                      console.error("Invalid JSON:", error);
+                    }
+                  }}
                   onEditorDidMount={onEditorDidMount}
                 />
               )}
