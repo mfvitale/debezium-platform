@@ -19,7 +19,7 @@ import "./CreateSource.css";
 import { CodeEditor, Language } from "@patternfly/react-code-editor";
 import { useEffect, useRef, useState } from "react";
 import { createPost, Payload, Source } from "../../apis/apis";
-import { API_URL, schema, initialSchema } from "../../utils/constants";
+import { API_URL, connectorSchema, initialConnectorSchema } from "../../utils/constants";
 import { convertMapToObject } from "../../utils/helpers";
 import sourceCatalog from "../../__mocks__/data/SourceCatalog.json";
 import { find } from "lodash";
@@ -56,9 +56,9 @@ const FormSyncManager: React.FC<{
   sourceId,
   properties,
   setProperties,
-  setCodeAlert
+  setCodeAlert,
 }) => {
-  const validate = ajv.compile(initialSchema);
+  const validate = ajv.compile(initialConnectorSchema);
   // Ref to track the source of the update
   const updateSource = useRef<"form" | "code" | null>(null);
 
@@ -76,7 +76,7 @@ const FormSyncManager: React.FC<{
     setCode((prevCode: any) => {
       if (
         prevCode.name === getFormValue("source-name") &&
-        prevCode.description === getFormValue("details") &&
+        prevCode.description === getFormValue("description") &&
         JSON.stringify(prevCode.config) === JSON.stringify(configuration)
       ) {
         return prevCode;
@@ -87,12 +87,12 @@ const FormSyncManager: React.FC<{
         type,
         config: configuration,
         name: getFormValue("source-name") || "",
-        description: getFormValue("details") || "",
+        description: getFormValue("description") || "",
       };
     });
   }, [
     getFormValue("source-name"),
-    getFormValue("details"),
+    getFormValue("description"),
     properties,
     sourceId,
   ]);
@@ -100,17 +100,23 @@ const FormSyncManager: React.FC<{
   // Update form values when code changes
   useEffect(() => {
     const isValid = validate(code);
-    if(isValid){
+    if (isValid) {
       if (updateSource.current === "form") {
         updateSource.current = null;
         return;
       }
       updateSource.current = "code";
       if (code.name !== getFormValue("source-name")) {
-        setFormValue("source-name", typeof code.name === "string" ? code.name : "");
+        setFormValue(
+          "source-name",
+          typeof code.name === "string" ? code.name : ""
+        );
       }
-      if (code.description !== getFormValue("details")) {
-        setFormValue("details", typeof code.description === "string" ? code.description : "");
+      if (code.description !== getFormValue("description")) {
+        setFormValue(
+          "description",
+          typeof code.description === "string" ? code.description : ""
+        );
       }
       const currentConfig = convertMapToObject(properties);
       if (JSON.stringify(currentConfig) !== JSON.stringify(code.config)) {
@@ -121,11 +127,9 @@ const FormSyncManager: React.FC<{
         setProperties(configMap);
       }
       setCodeAlert("");
-    }else {
+    } else {
       setCodeAlert(ajv.errorsText(validate.errors));
     }
-
-    
   }, [code]);
 
   return null;
@@ -165,7 +169,7 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
   );
   const [keyCount, setKeyCount] = useState<number>(1);
 
-  const validate = ajv.compile(schema);
+  const validate = ajv.compile(connectorSchema);
 
   const handleAddProperty = () => {
     const newKey = `key${keyCount}`;
@@ -333,13 +337,6 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
             </ToolbarItem>
           </ToolbarContent>
         </Toolbar>
-        {codeAlert && (
-          <Alert
-            variant="danger"
-            isInline
-            title={`Provided json is not valid: ${codeAlert}`}
-          />
-        )}
       </PageSection>
 
       <FormContextProvider initialValues={{}}>
@@ -383,26 +380,36 @@ const CreateSource: React.FunctionComponent<CreateSourceProps> = ({
                   handlePropertyChange={handlePropertyChange}
                 />
               ) : (
-                <CodeEditor
-                  isUploadEnabled
-                  isDownloadEnabled
-                  isCopyEnabled
-                  isLanguageLabelVisible
-                  isMinimapVisible
-                  language={Language.json}
-                  downloadFileName="source-connector.json"
-                  isFullHeight
-                  code={JSON.stringify(code, null, 2)}
-                  onCodeChange={(value) => {
-                    try {
-                      const parsedCode = JSON.parse(value);
-                      setCode(parsedCode);
-                    } catch (error) {
-                      console.error("Invalid JSON:", error);
-                    }
-                  }}
-                  onEditorDidMount={onEditorDidMount}
-                />
+                <>
+                  {codeAlert && (
+                    <Alert
+                      variant="danger"
+                      isInline
+                      title={`Provided json is not valid: ${codeAlert}`}
+                      style={{ marginBottom: "10px" }}
+                    />
+                  )}
+                  <CodeEditor
+                    isUploadEnabled
+                    isDownloadEnabled
+                    isCopyEnabled
+                    isLanguageLabelVisible
+                    isMinimapVisible
+                    language={Language.json}
+                    downloadFileName="source-connector.json"
+                    isFullHeight
+                    code={JSON.stringify(code, null, 2)}
+                    onCodeChange={(value) => {
+                      try {
+                        const parsedCode = JSON.parse(value);
+                        setCode(parsedCode);
+                      } catch (error) {
+                        console.error("Invalid JSON:", error);
+                      }
+                    }}
+                    onEditorDidMount={onEditorDidMount}
+                  />
+                </>
               )}
             </PageSection>
             <PageSection className="pf-m-sticky-bottom" isFilled={false}>

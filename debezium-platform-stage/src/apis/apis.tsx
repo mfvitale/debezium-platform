@@ -60,6 +60,15 @@ export type Pipeline = {
   logLevel: string;
 };
 
+export type PipelinePayload = {
+  name: string;
+  source: PipelineSource;
+  destination: PipelineDestination;
+  description?: string;
+  transforms: Transform[];
+  logLevel: string;
+};
+
 export type DestinationApiResponse = Destination[];
 
 export type SourceConfig = {

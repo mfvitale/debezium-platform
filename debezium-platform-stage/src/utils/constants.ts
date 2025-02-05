@@ -31,7 +31,7 @@ export const AppStrings = {
 };
 
 // Connector schema
-export const schema = {
+export const connectorSchema = {
   type: "object",
   properties: {
     name: { type: "string" },
@@ -47,7 +47,7 @@ export const schema = {
   required: ["name", "type", "schema", "config"],
 };
 
-export const initialSchema = {
+export const initialConnectorSchema = {
   type: "object",
   properties: {
     name: { type: "string" },
@@ -61,4 +61,34 @@ export const initialSchema = {
     },
   },
   required: ["name", "type", "schema", "config"],
+};
+
+export const pipelineSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    description: { type: "string" },
+    source: {
+      type: "object",
+      properties: { name: { type: "string" }, id: { type: "number" } },
+      required: ["name", "id"],
+    },
+    destination: {
+      type: "object",
+      properties: { name: { type: "string" }, id: { type: "number" } },
+      required: ["name", "id"],
+    },
+    transforms: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          id: { type: "number" },
+        },
+        required: ["name", "id"],
+      },
+    },
+  },
+  required: ["name", "source", "destination"],
 };
