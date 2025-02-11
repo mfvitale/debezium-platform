@@ -29,6 +29,7 @@ import { Transforms } from "./pages/Transforms";
 import { Vaults } from "./pages/Vault";
 import { CreateTransforms } from "./pages/Transforms/CreateTransforms";
 import { EditTransforms } from "./pages/Transforms/EditTransforms";
+import { featureFlags } from "@utils/featureFlag";
 
 export interface IAppRoute {
   label?: string; // Excluding the label will exclude the route from the nav sidebar in AppLayout
@@ -49,14 +50,6 @@ export interface IAppRouteGroup {
 export type AppRouteConfig = IAppRoute | IAppRouteGroup;
 
 const routes: AppRouteConfig[] = [
-  // {
-  //   component: WelcomePage,
-  //   label: "Home",
-  //   icon: <HomeAltIcon style={{ outline: "none" }} />,
-  //   path: "/",
-  //   navSection: "home",
-  //   title: `${AppBranding} | Home`,
-  // },
   {
     component: Pipelines,
     path: "/",
@@ -77,12 +70,6 @@ const routes: AppRouteConfig[] = [
     navSection: "pipeline",
     title: `${AppBranding} | Pipeline`,
   },
-  // {
-  //   component: EditPipeline,
-  //   path: "/pipeline/pipeline_edit/:pipelineId",
-  //   navSection: "pipeline",
-  //   title: `${AppBranding} | Pipeline`,
-  // },
   {
     component: PipelineDesigner,
     path: "/pipeline/pipeline_designer",
@@ -121,26 +108,31 @@ const routes: AppRouteConfig[] = [
     navSection: "source",
     title: `${AppBranding} | Source`,
   },
-  {
-    component: CreateTransforms,
-    path: "/transform/create_transform",
-    navSection: "transform",
-    title: `${AppBranding} | Transform`,
-  },
-  {
-    component: Transforms,
-    label: "Transform",
-    icon: <DataProcessorIcon style={{ outline: "none" }} />,
-    path: "/transform",
-    navSection: "transform",
-    title: `${AppBranding} | Transform`,
-  },
-  {
-    component: EditTransforms,
-    path: "/transform/edit_transform/:transformId",
-    navSection: "transform",
-    title: `${AppBranding} | Transform`,
-  },
+  ...(featureFlags.Transform
+    ? [
+        {
+          component: CreateTransforms,
+          path: "/transform/create_transform",
+          navSection: "transform",
+          title: `${AppBranding} | Transform`,
+        },
+        {
+          component: Transforms,
+          label: "Transform",
+          icon: <DataProcessorIcon style={{ outline: "none" }} />,
+          path: "/transform",
+          navSection: "transform",
+          title: `${AppBranding} | Transform`,
+        },
+        {
+          component: EditTransforms,
+          path: "/transform/edit_transform/:transformId",
+          navSection: "transform",
+          title: `${AppBranding} | Transform`,
+        },
+      ]
+    : []),
+
   {
     component: Destinations,
     label: "Destination",
@@ -167,14 +159,18 @@ const routes: AppRouteConfig[] = [
     navSection: "destination",
     title: `${AppBranding} | Destination`,
   },
-  {
-    component: Vaults,
-    label: "Vaults",
-    icon: <VaultIcon style={{ outline: "none" }} />,
-    path: "/vaults",
-    navSection: "vaults",
-    title: `${AppBranding} | Vaults`,
-  },
+  ...(featureFlags.Vault
+    ? [
+        {
+          component: Vaults,
+          label: "Vaults",
+          icon: <VaultIcon style={{ outline: "none" }} />,
+          path: "/vaults",
+          navSection: "vaults",
+          title: `${AppBranding} | Vaults`,
+        },
+      ]
+    : []),
 ];
 
 export { routes };
