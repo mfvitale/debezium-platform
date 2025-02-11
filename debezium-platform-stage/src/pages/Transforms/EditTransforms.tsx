@@ -3,6 +3,7 @@ import PageHeader from "@components/PageHeader";
 import { CodeEditor, Language } from "@patternfly/react-code-editor";
 import {
   ActionGroup,
+  Alert,
   Button,
   ButtonType,
   Card,
@@ -49,10 +50,18 @@ import transforms from "../../__mocks__/data/DebeziumTransfroms.json";
 import predicates from "../../__mocks__/data/Predicates.json";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { editPut, fetchDataTypeTwo, TransformData } from "src/apis";
-import { API_URL } from "@utils/constants";
+import {
+  editPut,
+  fetchDataTypeTwo,
+  TransformData,
+  TransformPayload,
+} from "src/apis";
+import { API_URL, transformSchema } from "@utils/constants";
 import { useNotification } from "@appContext/AppNotificationContext";
 import { isEmpty } from "lodash";
+import Ajv from "ajv";
+
+const ajv = new Ajv();
 
 export interface IEditTransformsProps {
   onSelection?: (selection: TransformData) => void;
@@ -76,7 +85,7 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
 
   const [editorSelected, setEditorSelected] = React.useState("form-editor");
 
-  const [isLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<string>("");
@@ -91,6 +100,17 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
   const textInputRef = React.useRef<HTMLInputElement>();
 
   const NO_RESULTS = "no results";
+
+  const [code, setCode] = useState({
+    name: "",
+    description: "",
+    type: "",
+    schema: "schema123",
+    vaults: [],
+    config: {},
+  });
+  const [codeAlert, setCodeAlert] = useState("");
+  const validate = ajv.compile(transformSchema);
 
   useEffect(() => {
     const selectOption: SelectOptionProps[] = transforms.map((item) => {
@@ -137,7 +157,6 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
     });
     let newSelectOptions: SelectOptionProps[] = selectOption;
 
-    // Filter menu items based on the text input value when one exists
     if (filterValue) {
       newSelectOptions = selectOption.filter((menuItem) =>
         String(menuItem.children)
@@ -153,7 +172,6 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
           },
         ];
       }
-      // Open the menu when the input value changes and the new value is not empty
       if (!isOpen) {
         setIsOpen(true);
       }
@@ -230,7 +248,6 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
       return;
     }
     if (key === "ArrowUp") {
-      // When no index is set or at the first index, focus to the last, otherwise decrement focus index
       if (focusedItemIndex === null || focusedItemIndex === 0) {
         indexToFocus = selectOptions!.length - 1;
       } else {
@@ -245,7 +262,6 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
       }
     }
     if (key === "ArrowDown") {
-      // When no index is set or at the last index, focus to the first, otherwise increment focus index
       if (
         focusedItemIndex === null ||
         focusedItemIndex === selectOptions!.length - 1
@@ -359,6 +375,7 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
           ),
           "predicate.negate": "" + response.data?.predicate?.negate || "false",
         });
+        setCode(response.data as any);
       }
 
       setIsFetchLoading(false);
@@ -367,80 +384,108 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
     fetchDestinations();
   }, [transformId]);
 
-  const editTransform = React.useCallback(
-    async (values: Record<string, string>) => {
-      const {
-        "transform-name": transformName,
-        description: description,
-        ...restValues
-      } = values;
-      const configProperties = transformData?.config || {};
-
-      const oldConfig = { ...configProperties };
-      const oldPredicates = transformData?.predicate || {};
-
-      const newValues: Record<string, string> = {};
-      const newPredicates: any = { config: {} };
-
-      Object.entries(restValues).forEach(([key, value]) => {
-        if (key.startsWith("predicate")) {
-          if (key.startsWith("predicateConfig.")) {
-            newPredicates.config[key.replace("predicateConfig.", "")] = value;
-          } else {
-            newPredicates[key.replace("predicate.", "")] = value;
-          }
-        } else {
-          newValues[key] = value;
-        }
-      });
-      if (selectedPredicate) {
-        newPredicates.type = selectedPredicate;
-      }
-
-      const updatedConfig = { ...oldConfig, ...newValues };
-      const updatedPredicates =
-        Object.keys(newPredicates).length > 1 || !isEmpty(newPredicates.config)
-          ? {
-              ...oldPredicates,
-              ...newPredicates,
-              config: { ...newPredicates.config },
-            }
-          : {};
-
-      const payload = {
-        description: description,
-        config: { ...updatedConfig },
-        predicate: { ...updatedPredicates },
-        name: transformName,
-      };
-
-      const response = await editPut(
-        `${API_URL}/api/transforms/${transformData?.id}`,
-        payload
+  const editTransform = async (payload: TransformPayload) => {
+    const response = await editPut(
+      `${API_URL}/api/transforms/${transformData?.id}`,
+      payload
+    );
+    if (response.error) {
+      addNotification(
+        "danger",
+        `Source edit failed`,
+        `Failed to create ${(response.data as any).name}: ${response.error}`
       );
-      if (response.error) {
-        addNotification(
-          "danger",
-          `Source edit failed`,
-          `Failed to create ${(response.data as any).name}: ${response.error}`
-        );
+    } else {
+      onSelection && onSelection(response.data as any);
+      addNotification(
+        "success",
+        `Edit successful`,
+        `Source "${(response.data as any).name}" edited successfully.`
+      );
+      navigateTo("/transform");
+    }
+  };
+
+  const handleEdit = React.useCallback(
+    async (
+      values: Record<string, string>,
+      setError: (fieldId: string, error: string | undefined) => void
+    ) => {
+      if (editorSelected === "form-editor") {
+        if (!values["transform-name"]) {
+          setError("transform-name", "transform name is required.");
+        } else {
+          setIsLoading(true);
+          const {
+            "transform-name": transformName,
+            description: description,
+            ...restValues
+          } = values;
+          const configProperties = transformData?.config || {};
+
+          const oldConfig = { ...configProperties };
+          const oldPredicates = transformData?.predicate || {};
+
+          const newValues: Record<string, string> = {};
+          const newPredicates: any = { config: {} };
+
+          Object.entries(restValues).forEach(([key, value]) => {
+            if (key.startsWith("predicate")) {
+              if (key.startsWith("predicateConfig.")) {
+                newPredicates.config[key.replace("predicateConfig.", "")] =
+                  value;
+              } else {
+                newPredicates[key.replace("predicate.", "")] = value;
+              }
+            } else {
+              newValues[key] = value;
+            }
+          });
+          if (selectedPredicate) {
+            newPredicates.type = selectedPredicate;
+          }
+
+          const updatedConfig = { ...oldConfig, ...newValues };
+          const updatedPredicates =
+            Object.keys(newPredicates).length > 1 ||
+            !isEmpty(newPredicates.config)
+              ? {
+                  ...oldPredicates,
+                  ...newPredicates,
+                  config: { ...newPredicates.config },
+                }
+              : {};
+
+          const payload = {
+            description: description,
+            config: { ...updatedConfig },
+            predicate: { ...updatedPredicates },
+            name: transformName,
+          };
+          await editTransform(payload as TransformPayload);
+          setIsLoading(false);
+        }
       } else {
-        onSelection && onSelection(response.data as any);
-        addNotification(
-          "success",
-          `Edit successful`,
-          `Source "${(response.data as any).name}" edited successfully.`
-        );
-        navigateTo("/transform");
+        const payload = code;
+        const isValid = validate(payload);
+        if (!isValid) {
+          setCodeAlert(ajv.errorsText(validate.errors));
+          return;
+        } else {
+          setIsLoading(true);
+          await editTransform(payload as TransformPayload);
+          setIsLoading(false);
+        }
       }
     },
     [
-      addNotification,
-      transformData,
-      initialValues,
-      onSelection,
+      editorSelected,
+      transformData?.config,
+      transformData?.predicate,
       selectedPredicate,
-      selected,
+      editTransform,
+      code,
+      validate,
     ]
   );
 
@@ -452,6 +497,21 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
   ) => {
     const id = event.currentTarget.id;
     setEditorSelected(id);
+  };
+
+  const onEditorDidMount = (
+    editor: { layout: () => void; focus: () => void },
+    monaco: {
+      editor: {
+        getModels: () => {
+          updateOptions: (arg0: { tabSize: number }) => void;
+        }[];
+      };
+    }
+  ) => {
+    editor.layout();
+    editor.focus();
+    monaco.editor.getModels()[0].updateOptions({ tabSize: 5 });
   };
 
   return (
@@ -868,15 +928,36 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
                     </CardBody>
                   </Card>
                 ) : (
-                  <CodeEditor
-                    isUploadEnabled
-                    isDownloadEnabled
-                    isCopyEnabled
-                    isLanguageLabelVisible
-                    isMinimapVisible
-                    language={Language.yaml}
-                    height="450px"
-                  />
+                  <>
+                    {codeAlert && (
+                      <Alert
+                        variant="danger"
+                        isInline
+                        title={`Provided json is not valid: ${codeAlert}`}
+                        style={{ marginBottom: "10px" }}
+                      />
+                    )}
+                    <CodeEditor
+                      isUploadEnabled
+                      isDownloadEnabled
+                      isCopyEnabled
+                      isLanguageLabelVisible
+                      isMinimapVisible
+                      language={Language.json}
+                      downloadFileName="transforms.json"
+                      isFullHeight
+                      code={JSON.stringify(code, null, 2)}
+                      onCodeChange={(value) => {
+                        try {
+                          const parsedCode = JSON.parse(value);
+                          setCode(parsedCode);
+                        } catch (error) {
+                          console.error("Invalid JSON:", error);
+                        }
+                      }}
+                      onEditorDidMount={onEditorDidMount}
+                    />
+                  </>
                 )}
               </PageSection>
               <PageSection className="pf-m-sticky-bottom" isFilled={false}>
@@ -888,15 +969,7 @@ const EditTransforms: React.FunctionComponent<IEditTransformsProps> = ({
                     type={ButtonType.submit}
                     onClick={(e) => {
                       e.preventDefault();
-
-                      if (!values["transform-name"]) {
-                        setError(
-                          "transform-name",
-                          "transform name is required."
-                        );
-                      } else {
-                        editTransform(values);
-                      }
+                      handleEdit(values, setError);
                     }}
                   >
                     Save changes
