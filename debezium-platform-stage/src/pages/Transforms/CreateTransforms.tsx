@@ -909,12 +909,6 @@ const CreateTransforms: React.FunctionComponent<ICreateTransformsProps> = ({
                   onClick={(e) => {
                     e.preventDefault();
                     handleCreate(values, setError);
-
-                    // if (!values["transform-name"]) {
-                    //   setError("transform-name", "transform name is required.");
-                    // } else {
-                    //   createNewTransform(values);
-                    // }
                   }}
                 >
                   Create transform
