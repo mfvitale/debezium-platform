@@ -49,14 +49,6 @@ export interface IAppRouteGroup {
 export type AppRouteConfig = IAppRoute | IAppRouteGroup;
 
 const routes: AppRouteConfig[] = [
-  // {
-  //   component: WelcomePage,
-  //   label: "Home",
-  //   icon: <HomeAltIcon style={{ outline: "none" }} />,
-  //   path: "/",
-  //   navSection: "home",
-  //   title: `${AppBranding} | Home`,
-  // },
   {
     component: Pipelines,
     path: "/",
@@ -77,12 +69,6 @@ const routes: AppRouteConfig[] = [
     navSection: "pipeline",
     title: `${AppBranding} | Pipeline`,
   },
-  // {
-  //   component: EditPipeline,
-  //   path: "/pipeline/pipeline_edit/:pipelineId",
-  //   navSection: "pipeline",
-  //   title: `${AppBranding} | Pipeline`,
-  // },
   {
     component: PipelineDesigner,
     path: "/pipeline/pipeline_designer",
@@ -141,6 +127,7 @@ const routes: AppRouteConfig[] = [
     navSection: "transform",
     title: `${AppBranding} | Transform`,
   },
+
   {
     component: Destinations,
     label: "Destination",
