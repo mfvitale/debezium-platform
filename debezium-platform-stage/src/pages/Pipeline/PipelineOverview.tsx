@@ -133,9 +133,11 @@ const PipelineOverview: FC<PipelineOverviewProp> = ({ pipelineId }) => {
                       ariaTitle="Queue utilization"
                       constrainToVisibleArea
                       data={{ x: "GBps capacity", y: 45 }}
-                      labels={({ datum }: { datum: { x: string; y: number } }) =>
-                        datum.x ? `${datum.x}: ${datum.y}%` : null
-                      }
+                      labels={({
+                        datum,
+                      }: {
+                        datum: { x: string; y: number };
+                      }) => (datum.x ? `${datum.x}: ${datum.y}%` : null)}
                       legendData={[
                         { name: `Storage capacity: 45%` },
                         { name: "Unused: 55%" },
@@ -202,8 +204,21 @@ const PipelineOverview: FC<PipelineOverviewProp> = ({ pipelineId }) => {
           </CardBody>
         </Card>
       </GridItem>
+      <GridItem span={12} rowSpan={1}>
+        <Card ouiaId="BasicCard" isFullHeight>
+          <CardTitle>Pipeline composition</CardTitle>
+          <CardBody style={{minHeight: "300px"}}>
+            <CompositionFlow
+              sourceName={source?.name || ""}
+              sourceType={source?.type || ""}
+              destinationName={destination?.name || ""}
+              destinationType={destination?.type || ""}
+            />
+          </CardBody>
+        </Card>
+      </GridItem>
 
-      <GridItem span={3} rowSpan={1}>
+      <GridItem span={6} rowSpan={1}>
         <Card ouiaId="BasicCard">
           <CardTitle>Source</CardTitle>
           <CardBody>
@@ -224,7 +239,7 @@ const PipelineOverview: FC<PipelineOverviewProp> = ({ pipelineId }) => {
                   {isSourceFetchLoading ? (
                     <Skeleton screenreaderText="Loading contents" />
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
                       <ConnectorImage
                         connectorType={source?.type || ""}
                         size={25}
@@ -266,20 +281,6 @@ const PipelineOverview: FC<PipelineOverviewProp> = ({ pipelineId }) => {
       </GridItem>
 
       <GridItem span={6} rowSpan={1}>
-        <Card ouiaId="BasicCard" isFullHeight>
-          <CardTitle>Pipeline composition</CardTitle>
-          <CardBody>
-            <CompositionFlow
-              sourceName={source?.name || ""}
-              sourceType={source?.type || ""}
-              destinationName={destination?.name || ""}
-              destinationType={destination?.type || ""}
-            />
-          </CardBody>
-        </Card>
-      </GridItem>
-
-      <GridItem span={3} rowSpan={1}>
         <Card ouiaId="BasicCard">
           <CardTitle>Destination</CardTitle>
           <CardBody>
@@ -300,17 +301,17 @@ const PipelineOverview: FC<PipelineOverviewProp> = ({ pipelineId }) => {
                   {isDestinationFetchLoading ? (
                     <Skeleton screenreaderText="Loading contents" />
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
                       <ConnectorImage
-                      connectorType={destination?.type || ""}
-                      size={25}
+                        connectorType={destination?.type || ""}
+                        size={25}
                       />
                       <Content
-                      component="p"
-                      className="pipeline-overview__card-description"
-                      style={{ marginLeft: '8px' }}
+                        component="p"
+                        className="pipeline-overview__card-description"
+                        style={{ marginLeft: "8px" }}
                       >
-                      {getConnectorTypeName(destination?.type || "")}
+                        {getConnectorTypeName(destination?.type || "")}
                       </Content>
                     </div>
                   )}

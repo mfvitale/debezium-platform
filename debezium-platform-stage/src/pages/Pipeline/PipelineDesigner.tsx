@@ -98,6 +98,7 @@ const PipelineDesigner: React.FunctionComponent = () => {
       const [id, name] = String(item.id).split("=");
       return { id: Number(id), name };
     });
+    console.log("updatedTransforms", updatedTransforms);
     setSelectedTransform(updatedTransforms);
 
     setRearrangeTrigger((prev) => !prev); // Toggle to trigger rearrangement in child
@@ -106,6 +107,8 @@ const PipelineDesigner: React.FunctionComponent = () => {
 
   const [isExpanded, setIsExpanded] = React.useState(false);
   const drawerRef = React.useRef<HTMLDivElement>();
+
+  const [transformDeleteList, setTransformDeleteList] = React.useState<[]>([]);
 
   React.useEffect(() => {
     selectedTransform.length > 0 && setItems(getItems(selectedTransform));
@@ -161,10 +164,6 @@ const PipelineDesigner: React.FunctionComponent = () => {
   const navigateTo = (url: string) => {
     navigate(url);
   };
-
-  React.useEffect(() => {
-    setItems(getItems(selectedTransform));
-  }, [selectedTransform]);
 
   const reArrangeTransform = (
     _event: DragDropSortDragEndEvent,

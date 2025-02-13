@@ -223,7 +223,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         type: "destination",
         action: cardButton("Destination"),
       },
-      position: { x: 480, y: 80 },
+      position: { x: 480, y: 78 },
       type: "dataSelectorNode",
       draggable: false,
     };
@@ -356,7 +356,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         targetPosition: "left",
         action: cardButtonTransform(),
       },
-      position: { x: 45 + selectedTransformRef.current.length * 150, y: 37 },
+      position: { x: 45 + selectedTransformRef.current.length * 150, y: 36 },
       style: {
         zIndex: 10,
       },
