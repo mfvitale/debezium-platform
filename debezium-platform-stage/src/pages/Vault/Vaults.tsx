@@ -5,6 +5,7 @@ import EmptyStatus from "../../components/EmptyStatus";
 import { useNavigate } from "react-router-dom";
 import comingSoonImage from "../../assets/comingSoon.png";
 import { useData } from "../../appLayout/AppContext";
+import { featureFlags } from "@utils/featureFlag";
 
 export interface IVaultsProps {
   sampleProp?: string;
@@ -21,12 +22,15 @@ const Vaults: React.FunctionComponent<IVaultsProps> = () => {
   return (
     <>
       <PageSection style={{ position: "relative" }} isFilled>
-        <div
-          className="transformation_overlay"
-          style={darkMode ? { background: "rgba(41, 41, 41, 0.6)" } : {}}
-        >
-          <img src={comingSoonImage} alt="Coming Soon" />
-        </div>
+        {!featureFlags.Vault && (
+          <div
+            className="transformation_overlay"
+            style={darkMode ? { background: "rgba(41, 41, 41, 0.6)", zIndex: 9999 } : {zIndex: 9999}}
+          >
+            <img src={comingSoonImage} alt="Coming Soon" />
+          </div>
+        )}
+
         <EmptyStatus
           heading="No vaults available"
           primaryMessage=' No vaults is configure for this cluster yet. To streams change

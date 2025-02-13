@@ -29,7 +29,6 @@ import { Transforms } from "./pages/Transforms";
 import { Vaults } from "./pages/Vault";
 import { CreateTransforms } from "./pages/Transforms/CreateTransforms";
 import { EditTransforms } from "./pages/Transforms/EditTransforms";
-import { featureFlags } from "@utils/featureFlag";
 
 export interface IAppRoute {
   label?: string; // Excluding the label will exclude the route from the nav sidebar in AppLayout
@@ -108,30 +107,26 @@ const routes: AppRouteConfig[] = [
     navSection: "source",
     title: `${AppBranding} | Source`,
   },
-  ...(featureFlags.Transform
-    ? [
-        {
-          component: CreateTransforms,
-          path: "/transform/create_transform",
-          navSection: "transform",
-          title: `${AppBranding} | Transform`,
-        },
-        {
-          component: Transforms,
-          label: "Transform",
-          icon: <DataProcessorIcon style={{ outline: "none" }} />,
-          path: "/transform",
-          navSection: "transform",
-          title: `${AppBranding} | Transform`,
-        },
-        {
-          component: EditTransforms,
-          path: "/transform/edit_transform/:transformId",
-          navSection: "transform",
-          title: `${AppBranding} | Transform`,
-        },
-      ]
-    : []),
+  {
+    component: CreateTransforms,
+    path: "/transform/create_transform",
+    navSection: "transform",
+    title: `${AppBranding} | Transform`,
+  },
+  {
+    component: Transforms,
+    label: "Transform",
+    icon: <DataProcessorIcon style={{ outline: "none" }} />,
+    path: "/transform",
+    navSection: "transform",
+    title: `${AppBranding} | Transform`,
+  },
+  {
+    component: EditTransforms,
+    path: "/transform/edit_transform/:transformId",
+    navSection: "transform",
+    title: `${AppBranding} | Transform`,
+  },
 
   {
     component: Destinations,
@@ -159,18 +154,14 @@ const routes: AppRouteConfig[] = [
     navSection: "destination",
     title: `${AppBranding} | Destination`,
   },
-  ...(featureFlags.Vault
-    ? [
-        {
-          component: Vaults,
-          label: "Vaults",
-          icon: <VaultIcon style={{ outline: "none" }} />,
-          path: "/vaults",
-          navSection: "vaults",
-          title: `${AppBranding} | Vaults`,
-        },
-      ]
-    : []),
+  {
+    component: Vaults,
+    label: "Vaults",
+    icon: <VaultIcon style={{ outline: "none" }} />,
+    path: "/vaults",
+    navSection: "vaults",
+    title: `${AppBranding} | Vaults`,
+  },
 ];
 
 export { routes };
