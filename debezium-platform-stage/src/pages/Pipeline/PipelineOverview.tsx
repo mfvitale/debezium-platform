@@ -1,5 +1,4 @@
 import ConnectorImage from "@components/ComponentImage";
-import CompositionFlow from "@components/pipelineDesigner/CompositionFlow";
 import {
   ChartDonutUtilization,
   Chart,
@@ -25,9 +24,17 @@ import {
 import { API_URL } from "@utils/constants";
 import { getConnectorTypeName } from "@utils/helpers";
 import { FC, useEffect, useState } from "react";
-import { Pipeline, Source, Destination, fetchDataTypeTwo } from "src/apis/apis";
+import {
+  Pipeline,
+  Source,
+  Destination,
+  fetchDataTypeTwo,
+  Transform,
+} from "src/apis/apis";
 import comingSoonImage from "../../assets/comingSoon.png";
 import "./PipelineOverview.css";
+import { ReactFlowProvider } from "reactflow";
+import CompositionFlow from "@components/pipelineDesigner/CompositionFlow";
 
 type PipelineOverviewProp = {
   pipelineId: string;
@@ -36,6 +43,7 @@ type PipelineOverviewProp = {
 const PipelineOverview: FC<PipelineOverviewProp> = ({ pipelineId }) => {
   const [pipeline, setPipeline] = useState<Pipeline>();
   const [source, setSource] = useState<Source>();
+  const [transforms, setTransforms] = useState<Transform[]>([]);
   const [destination, setDestination] = useState<Destination>();
   const [isFetchLoading, setIsFetchLoading] = useState<boolean>(true);
   const [isSourceFetchLoading, setIsSourceFetchLoading] =
@@ -55,6 +63,7 @@ const PipelineOverview: FC<PipelineOverviewProp> = ({ pipelineId }) => {
         setError(response.error);
       } else {
         setPipeline(response.data as Pipeline);
+        setTransforms(response.data?.transforms as Transform[]);
       }
 
       setIsFetchLoading(false);
@@ -207,13 +216,16 @@ const PipelineOverview: FC<PipelineOverviewProp> = ({ pipelineId }) => {
       <GridItem span={12} rowSpan={1}>
         <Card ouiaId="BasicCard" isFullHeight>
           <CardTitle>Pipeline composition</CardTitle>
-          <CardBody style={{minHeight: "300px"}}>
-            <CompositionFlow
-              sourceName={source?.name || ""}
-              sourceType={source?.type || ""}
-              destinationName={destination?.name || ""}
-              destinationType={destination?.type || ""}
-            />
+          <CardBody style={{ minHeight: "300px" }}>
+            <ReactFlowProvider>
+              <CompositionFlow
+                sourceName={source?.name || ""}
+                sourceType={source?.type || ""}
+                selectedTransform={transforms}
+                destinationName={destination?.name || ""}
+                destinationType={destination?.type || ""}
+              />
+            </ReactFlowProvider>
           </CardBody>
         </Card>
       </GridItem>

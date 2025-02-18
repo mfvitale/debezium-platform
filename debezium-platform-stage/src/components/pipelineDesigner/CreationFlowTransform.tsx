@@ -69,6 +69,7 @@ interface CreationFlowTransformProps {
   isDestinationConfigured: boolean;
   selectedTransform: Transform[];
   rearrangeTrigger: boolean;
+  trigger?: boolean;
 }
 
 const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
@@ -81,8 +82,10 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
   isDestinationConfigured,
   selectedTransform,
   rearrangeTrigger,
+  trigger
 }) => {
   const { darkMode } = useData();
+  console.log("trigger", trigger);
 
   const reactFlowInstance = useReactFlow();
 
