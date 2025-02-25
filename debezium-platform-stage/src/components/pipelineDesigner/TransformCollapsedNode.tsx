@@ -1,4 +1,4 @@
-import { Handle, Position } from "reactflow";
+import { Position } from "reactflow";
 import "./DebeziumNode.css";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
@@ -103,7 +103,7 @@ const TransformCollapsedNode: React.FC<TransformCollapsedNodeProps> = ({
                 }
           }
         >
-          <Handle type="target" id="smt-input" position={data.targetPosition} />
+          {/* <Handle type="target" id="smt-input" position={data.targetPosition} /> */}
           <Card
             ouiaId="BasicCard"
             isPlain
@@ -153,11 +153,11 @@ const TransformCollapsedNode: React.FC<TransformCollapsedNodeProps> = ({
               </Bullseye>
             </CardBody>
           </Card>
-          <Handle
+          {/* <Handle
             type="source"
             id="smt-output"
             position={data.sourcePosition}
-          />
+          /> */}
         </div>
       </div>
     </>

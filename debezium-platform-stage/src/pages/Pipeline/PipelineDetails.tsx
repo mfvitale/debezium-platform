@@ -17,7 +17,8 @@ import { API_URL } from "../../utils/constants";
 import "./PipelineDetails.css";
 import PipelineLog from "./PipelineLog";
 import PipelineOverview from "./PipelineOverview";
-import { EditPipeline } from "./EditPipeline";
+// import { EditPipeline } from "./EditPipeline";
+import { PipelineDesignerEdit } from "./PipelineDesignerEdit";
 
 const PipelineDetails: React.FunctionComponent = () => {
   const { pipelineId, detailsTab } = useParams<{
@@ -151,7 +152,16 @@ const PipelineDetails: React.FunctionComponent = () => {
           className="pipeline-details__tab-error"
         >
           <TabContentBody className="pipeline-details__tab-error">
-            <EditPipeline />
+            {pipeline?.id && (
+              <PipelineDesignerEdit
+                pipelineSource={pipeline?.source}
+                pipelineDestination={pipeline?.destination}
+                transforms={pipeline?.transforms}
+                name={pipeline?.name}
+                desc={pipeline.description || ""}
+                logLevel={pipeline.logLevel}
+              />
+            )}
           </TabContentBody>
         </TabContent>
       </PageSection>

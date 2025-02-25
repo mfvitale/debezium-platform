@@ -821,7 +821,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
             gap={13}
             color={darkMode ? AppColors.dark : AppColors.white}
           />
-          <svg>
+          {/* <svg>
             <defs>
               <linearGradient id="edge-gradient-unified">
                 <stop offset="0%" stopColor="#a5c82d" />
@@ -829,7 +829,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
                 <stop offset="100%" stopColor="#58b2da" />
               </linearGradient>
             </defs>
-          </svg>
+          </svg> */}
         </ReactFlow>
       </div>
 

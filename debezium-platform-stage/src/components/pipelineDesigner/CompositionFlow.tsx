@@ -12,6 +12,7 @@ import ReactFlow, {
   Connection,
   addEdge,
   PanOnScrollMode,
+  useReactFlow,
 } from "reactflow";
 import { useData } from "../../appLayout/AppContext";
 import DebeziumNode from "./DebeziumNode";
@@ -56,6 +57,29 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
 }) => {
   const { darkMode } = useData();
 
+  const reactFlowInstance = useReactFlow();
+
+  const refitElements = () => {
+    setTimeout(() => {
+      reactFlowInstance.fitView({
+        padding: 0.2, // 20% padding
+        duration: 200, // 200ms
+      });
+    }, 50);
+  };
+
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      refitElements();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   const initialNodes: never[] = [];
   const initialEdges = [
     {
@@ -98,6 +122,7 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
         newId,
         xPosition,
         transform.name
+        // transform.predicate
       );
       return newTransformNode;
     });
@@ -119,10 +144,7 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
       draggable: false,
     };
 
-    
-
     setNodes((prevNodes: any) => {
-
       const dataSelectorDestinationNode = prevNodes.find(
         (node: any) => node.id === "destination"
       );
@@ -131,9 +153,7 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
         ...dataSelectorDestinationNode,
         position: {
           ...dataSelectorDestinationNode.position,
-          x:
-          350 +
-            150 * selectedTransformRef.current.length,
+          x: 350 + 150 * selectedTransformRef.current.length,
         },
       };
 
@@ -339,7 +359,7 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
   ]);
 
   return (
-    <>
+    <div ref={reactFlowWrapper} style={{ width: "100%", height: "100%" }}>
       <ReactFlow
         key={nodes.length}
         nodes={nodes}
@@ -367,17 +387,8 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
           gap={13}
           color={darkMode ? AppColors.dark : AppColors.white}
         />
-        <svg>
-          <defs>
-            <linearGradient id="edge-gradient-unified">
-              <stop offset="0%" stopColor="#a5c82d" />
-              <stop offset="50%" stopColor="#7fc5a5" />
-              <stop offset="100%" stopColor="#58b2da" />
-            </linearGradient>
-          </defs>
-        </svg>
       </ReactFlow>
-    </>
+    </div>
   );
 };
 

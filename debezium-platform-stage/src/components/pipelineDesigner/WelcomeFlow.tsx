@@ -175,15 +175,6 @@ const WelcomeFlow: React.FC<WelcomeFlowProps> = () => {
             gap={15}
             color={darkMode ? AppColors.dark : AppColors.white}
           />
-          <svg>
-            <defs>
-              <linearGradient id="edge-gradient-unified">
-                <stop offset="0%" stopColor="#a5c82d" />
-                <stop offset="50%" stopColor="#7fc5a5" />
-                <stop offset="100%" stopColor="#58b2da" />
-              </linearGradient>
-            </defs>
-          </svg>
         </ReactFlow>
       </div>
     </>

@@ -33,8 +33,8 @@ import {
 } from "src/apis/apis";
 import comingSoonImage from "../../assets/comingSoon.png";
 import "./PipelineOverview.css";
-import { ReactFlowProvider } from "reactflow";
 import CompositionFlow from "@components/pipelineDesigner/CompositionFlow";
+import { ReactFlowProvider } from "reactflow";
 
 type PipelineOverviewProp = {
   pipelineId: string;
@@ -216,7 +216,9 @@ const PipelineOverview: FC<PipelineOverviewProp> = ({ pipelineId }) => {
       <GridItem span={12} rowSpan={1}>
         <Card ouiaId="BasicCard" isFullHeight>
           <CardTitle>Pipeline composition</CardTitle>
-          <CardBody style={{ minHeight: "300px" }}>
+          <CardBody
+            style={{ minHeight: "300px", height: "100%", width: "100%" }}
+          >
             <ReactFlowProvider>
               <CompositionFlow
                 sourceName={source?.name || ""}

@@ -18,7 +18,7 @@ const UnifiedMultiEdge: React.FC<UnifiedMultiEdgeProps> = ({
   style = {},
   markerEnd,
 }) => {
-  const midY = sourceY -1 ; // Slightly above the direct line
+  const midY = sourceY - 1; // Slightly above the direct line
 
   // const firstTransformX = sourceX + 180;
   // const lastTransformX = targetX - 220;
@@ -54,6 +54,15 @@ const UnifiedMultiEdge: React.FC<UnifiedMultiEdgeProps> = ({
 
   return (
     <>
+      <svg>
+        <defs>
+          <linearGradient id="edge-gradient-unified">
+            <stop offset="0%" stopColor="#a5c82d" />
+            <stop offset="50%" stopColor="#7fc5a5" />
+            <stop offset="100%" stopColor="#58b2da" />
+          </linearGradient>
+        </defs>
+      </svg>
       <path
         id={id}
         style={style}

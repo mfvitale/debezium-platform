@@ -1,4 +1,4 @@
-import { Handle, Position } from "reactflow";
+import { Position } from "reactflow";
 import "./DebeziumNode.css";
 
 import { useData } from "../../appLayout/AppContext";
@@ -36,7 +36,7 @@ const TransformSelectorNode: React.FC<TransformSelectorNodeProps> = ({
                 }
           }
         >
-          <Handle type="target" id="smt-input" position={data.sourcePosition} />
+          {/* <Handle type="target" id="smt-input" position={data.sourcePosition} /> */}
           <Card
             ouiaId="BasicCard"
             isCompact
@@ -87,11 +87,11 @@ const TransformSelectorNode: React.FC<TransformSelectorNodeProps> = ({
               </Stack>
             </CardBody>
           </Card>
-          <Handle
+          {/* <Handle
             type="source"
             id="smt-output"
             position={data.targetPosition}
-          />
+          /> */}
         </div>
       </div>
     </>
