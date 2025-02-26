@@ -41,7 +41,6 @@ import TransformGroupNode from "./TransformGroupNode";
 import TransformSelectorNode from "./TransformSelectorNode";
 import TransformCollapsedNode from "./TransformCollapsedNode";
 import UnifiedCustomEdge from "./UnifiedCustomEdge";
-import UnifiedMultiEdge from "./UnifiedMultiEdge";
 
 const nodeTypes = {
   dataSelectorNode: DataSelectorNode,
@@ -55,7 +54,6 @@ const nodeTypes = {
 
 const edgeTypes = {
   unifiedCustomEdge: UnifiedCustomEdge,
-  unifiedMultiCustomEdge: UnifiedMultiEdge,
 };
 
 const proOptions = { hideAttribution: true };
@@ -69,7 +67,6 @@ interface CreationFlowTransformProps {
   isDestinationConfigured: boolean;
   selectedTransform: Transform[];
   rearrangeTrigger: boolean;
-  trigger?: boolean;
 }
 
 const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
@@ -82,10 +79,8 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
   isDestinationConfigured,
   selectedTransform,
   rearrangeTrigger,
-  trigger
 }) => {
   const { darkMode } = useData();
-  console.log("trigger", trigger);
 
   const reactFlowInstance = useReactFlow();
 
@@ -174,7 +169,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         targetPosition: "left",
         action: cardButtonTransform(),
       },
-      position: { x: 45, y: 39 },
+      position: { x: 45, y: 40 },
       style: {
         zIndex: 10,
       },
@@ -296,6 +291,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       draggable: false,
     };
   };
+
   const selectedTransformRef = useRef(selectedTransform);
   selectedTransformRef.current = selectedTransform;
 
@@ -303,13 +299,12 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
     const transformLinkNodes = nodes.filter(
       (node: any) => node.type === "transformLinkNode"
     );
-    console.log("nodes", nodes);
     const filteredTransformLinkNode = transformLinkNodes.filter((node: any) => {
       return selectedTransformRef.current.some(
         (transform: Transform) => transform.name === node.data.label
       );
     });
-    console.log("filteredTransformLinkNode", filteredTransformLinkNode);
+
     let updatedTransformLinkNodes: never[] = [];
     if (filteredTransformLinkNode.length === 0) {
       setNodes((prevNodes: any) => {
@@ -435,7 +430,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         onToggleDrawer: onToggleDrawer,
         handleCollapsed: handleCollapsed,
       },
-      position: { x: 260, y: 55 },
+      position: { x: 260, y: 57 },
       style: {
         width: 100 + +150 * selectedTransformRef.current.length,
         height: 80,
@@ -504,7 +499,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         id: "complete-multi-flow-path",
         source: "source",
         target: "destination",
-        type: "unifiedMultiCustomEdge",
+        type: "unifiedCustomEdge",
         data: { throughNodeNo: selectedTransformRef.current.length },
       },
     ];
@@ -585,7 +580,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         onToggleDrawer: onToggleDrawer,
         handleCollapsed: handleCollapsed,
       },
-      position: { x: 260, y: 55 },
+      position: { x: 260, y: 57 },
       style: {
         width: 100,
         height: 80,
@@ -604,21 +599,6 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         transformGroupNode,
       ];
     });
-    setEdges([
-      {
-        id: "source-add_transform",
-        source: "source",
-        target: "add_transform",
-        type: "customEdgeSource",
-        sourceHandle: "a",
-      },
-      {
-        id: "add_transform-destination",
-        source: "add_transform",
-        target: "destination",
-        type: "customEdgeDestination",
-      },
-    ]);
   }, [addTransformNode, transformGroupNode]);
 
   const handleAddTransform = useCallback(
@@ -712,7 +692,7 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
           id: "complete-multi-flow-path",
           source: "source",
           target: "destination",
-          type: "unifiedMultiCustomEdge",
+          type: "unifiedCustomEdge",
           data: { throughNodeNo: noOfTransformNodes },
         },
       ];
@@ -821,15 +801,6 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
             gap={13}
             color={darkMode ? AppColors.dark : AppColors.white}
           />
-          {/* <svg>
-            <defs>
-              <linearGradient id="edge-gradient-unified">
-                <stop offset="0%" stopColor="#a5c82d" />
-                <stop offset="50%" stopColor="#7fc5a5" />
-                <stop offset="100%" stopColor="#58b2da" />
-              </linearGradient>
-            </defs>
-          </svg> */}
         </ReactFlow>
       </div>
 

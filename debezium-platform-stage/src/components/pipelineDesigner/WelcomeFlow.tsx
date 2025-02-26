@@ -23,7 +23,7 @@ import UnifiedCustomEdge from "./UnifiedCustomEdge";
 
 const nodeTypes = {
   dataNodeSelector: DataNodeSelector,
-  addTransformation: DebeziumNode,
+  debeziumNode: DebeziumNode,
   dataNode: DataNode,
 };
 
@@ -87,7 +87,7 @@ const WelcomeFlow: React.FC<WelcomeFlowProps> = () => {
       },
       position: { x: 330, y: 147 },
       targetPosition: "left",
-      type: "addTransformation",
+      type: "debeziumNode",
       draggable: false,
     };
   }, []);

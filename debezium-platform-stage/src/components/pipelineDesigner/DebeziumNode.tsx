@@ -14,7 +14,7 @@ interface DebeziumNodeProps {
   };
 }
 
-const DebeziumNode: React.FC<DebeziumNodeProps> = ({ data }) => {
+const DebeziumNode: React.FC<DebeziumNodeProps> = () => {
   const { darkMode } = useData();
   return (
     <>

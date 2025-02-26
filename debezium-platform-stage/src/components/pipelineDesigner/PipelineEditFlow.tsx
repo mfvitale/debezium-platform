@@ -14,7 +14,6 @@ import ReactFlow, {
   PanOnScrollMode,
 } from "reactflow";
 import { useData } from "../../appLayout/AppContext";
-import DebeziumNode from "./DebeziumNode";
 import { AppColors } from "@utils/constants";
 import DataNode from "./DataNode";
 // import UnifiedCustomEdge from "./UnifiedCustomEdge";
@@ -31,7 +30,6 @@ import TransformSelectorNode from "./TransformSelectorNode";
 import EditUnifiedCustomEdge from "./EditUnifiedCustomEdge";
 
 const nodeTypes = {
-  addTransformation: DebeziumNode,
   dataNode: DataNode,
   transformLinkNode: TransformLinkNode,
   transformGroupNode: TransformGroupNode,

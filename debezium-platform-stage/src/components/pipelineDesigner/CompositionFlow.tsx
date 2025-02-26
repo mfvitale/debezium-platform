@@ -26,7 +26,7 @@ import TransformCollapsedNode from "./TransformCollapsedNode";
 import UnifiedMultiEdge from "./UnifiedMultiEdge";
 
 const nodeTypes = {
-  addTransformation: DebeziumNode,
+  debeziumNode: DebeziumNode,
   dataNode: DataNode,
   transformLinkNode: TransformLinkNode,
   transformGroupNode: TransformGroupNode,
@@ -327,7 +327,7 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
         },
         position: { x: 300, y: 45 },
         targetPosition: Position.Left,
-        type: "addTransformation",
+        type: "debeziumNode",
         draggable: false,
       };
 

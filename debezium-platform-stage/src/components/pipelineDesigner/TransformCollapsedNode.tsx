@@ -1,5 +1,4 @@
 import { Position } from "reactflow";
-import "./DebeziumNode.css";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 import {
