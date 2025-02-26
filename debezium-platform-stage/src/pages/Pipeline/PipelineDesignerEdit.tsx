@@ -42,7 +42,9 @@ import { useNavigate } from "react-router-dom";
 import "./PipelineDesigner.css";
 import {
   Destination,
+  editPut,
   fetchDataTypeTwo,
+  Pipeline,
   PipelineDestination,
   PipelineSource,
   Source,
@@ -64,8 +66,7 @@ import { API_URL } from "@utils/constants";
 import PipelineEditFlow from "@components/pipelineDesigner/PipelineEditFlow";
 import ConnectorImage from "@components/ComponentImage";
 import { CodeEditor, Language } from "@patternfly/react-code-editor";
-import { set } from "lodash";
-// import { options } from "node_modules/axios/index.d.cts";
+import { useNotification } from "@appContext/AppNotificationContext";
 
 // Define Jotai atoms
 export const selectedSourceAtom = atom<Source | undefined>(undefined);
@@ -113,7 +114,8 @@ type PipelineDesignerEditProps = {
   transforms: Transform[];
   name: string;
   desc: string;
-  logLevel: string;
+  definedLogLevel: string;
+  pipelineId: number;
 };
 
 const PipelineDesignerEdit: React.FunctionComponent<
@@ -124,7 +126,8 @@ const PipelineDesignerEdit: React.FunctionComponent<
   transforms,
   name,
   desc,
-  logLevel,
+  definedLogLevel,
+  pipelineId,
 }) => {
   const navigate = useNavigate();
 
@@ -133,23 +136,19 @@ const PipelineDesignerEdit: React.FunctionComponent<
 
   const [editorSelected, setEditorSelected] = useState("form-editor");
 
-  const [tempDeletedItems, setTempDeletedItems] = React.useState<Set<string>>(
-    new Set()
-  );
+  const { addNotification } = useNotification();
 
-  const [isSourceConfigured, setIsSourceConfigured] = React.useState(false);
-  const [isDestinationConfigured, setIsDestinationConfigured] =
-    React.useState(false);
+  // const [tempDeletedItems, setTempDeletedItems] = React.useState<Set<string>>(
+  //   new Set()
+  // );
 
-  const [selectedSource, setSelectedSource] = useAtom(selectedSourceAtom);
-  const [selectedDestination, setSelectedDestination] = useAtom(
-    selectedDestinationAtom
-  );
   const [selectedTransform, setSelectedTransform] = useAtom(
     selectedTransformAtom
   );
 
   const [rearrangeTrigger, setRearrangeTrigger] = React.useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isExpanded, setIsExpanded] = React.useState(false);
   const drawerRef = React.useRef<HTMLDivElement>();
@@ -208,11 +207,11 @@ const PipelineDesignerEdit: React.FunctionComponent<
 
   // Handle temporary deletion of items
   const handleTempDelete = React.useCallback((id: string) => {
-    setTempDeletedItems((prev) => {
-      const newSet = new Set(prev);
-      newSet.add(id);
-      return newSet;
-    });
+    // setTempDeletedItems((prev) => {
+    //   const newSet = new Set(prev);
+    //   newSet.add(id);
+    //   return newSet;
+    // });
     setItems((prevItems) => prevItems.filter((item) => item.id !== id));
   }, []);
 
@@ -220,7 +219,7 @@ const PipelineDesignerEdit: React.FunctionComponent<
   useEffect(() => {
     if (selectedTransform.length > 0) {
       setItems(getItems(selectedTransform, handleTempDelete));
-      setTempDeletedItems(new Set()); // Reset deleted items when transforms change
+      // setTempDeletedItems(new Set()); // Reset deleted items when transforms change
     }
   }, [selectedTransform, handleTempDelete]);
 
@@ -232,7 +231,7 @@ const PipelineDesignerEdit: React.FunctionComponent<
     if (isExpanded) {
       // Reset temporary state when closing drawer without applying
       setItems(getItems(selectedTransform, handleTempDelete));
-      setTempDeletedItems(new Set());
+      // setTempDeletedItems(new Set());
     }
     setIsExpanded(!isExpanded);
   };
@@ -240,7 +239,7 @@ const PipelineDesignerEdit: React.FunctionComponent<
   const onCloseClick = () => {
     // Reset temporary state when closing drawer without applying
     setItems(getItems(selectedTransform, handleTempDelete));
-    setTempDeletedItems(new Set());
+    // setTempDeletedItems(new Set());
     setIsExpanded(false);
   };
 
@@ -277,17 +276,52 @@ const PipelineDesignerEdit: React.FunctionComponent<
     setItems(newItems);
   };
 
-  //  const [logLevel, setLogLevel] = useState("");
+  const editPipeline = async (values: Record<string, string>) => {
+    setIsLoading(true);
+    const payload = {
+      description: values["descriptions"],
+      logLevel: logLevel,
+      name: values["pipeline-name"],
+      transforms: selectedTransform,
+    };
 
-  //  useEffect(() => {
-  //   setLogLevel(logLevel);
-  //  }, [logLevel]);
+    const response = await editPut(
+      `${API_URL}/api/pipelines/${pipelineId}`,
+      payload
+    );
+    setIsLoading(false);
+
+    if (response.error) {
+      addNotification(
+        "danger",
+        `Edit failed`,
+        `Failed to edit ${(response.data as Pipeline).name}: ${response.error}`
+      );
+    } else {
+      addNotification(
+        "success",
+        `Edit successful`,
+        `Pipeline "${(response.data as Pipeline).name}" edited successfully.`
+      );
+      navigateTo("/pipeline");
+    }
+  };
+
+  const handleEditPipeline = async (values: Record<string, string>) => {
+    await editPipeline(values);
+  };
+
+  const [logLevel, setLogLevel] = useState("");
+
+  useEffect(() => {
+    setLogLevel(definedLogLevel);
+  }, [definedLogLevel]);
 
   const onChange = (
     _event: React.FormEvent<HTMLSelectElement>,
     value: string
   ) => {
-    // setLogLevel(value);
+    setLogLevel(value);
   };
 
   const options = [
@@ -348,7 +382,7 @@ const PipelineDesignerEdit: React.FunctionComponent<
         <Drawer isExpanded={isExpanded} onExpand={onExpand}>
           <DrawerContent panelContent={panelContent}>
             <DrawerContentBody>
-              <PageSection isFilled>
+              <PageSection isFilled padding={{ default: "noPadding" }}>
                 <Card isFullHeight>
                   <CardBody isFilled style={{ height: "100%", width: "100%" }}>
                     <ReactFlowProvider>
@@ -362,7 +396,6 @@ const PipelineDesignerEdit: React.FunctionComponent<
                         openTransformDrawer={onToggleDrawer}
                       />
                     </ReactFlowProvider>
-                    {/* text */}
                   </CardBody>
 
                   <CardFooter
@@ -372,17 +405,14 @@ const PipelineDesignerEdit: React.FunctionComponent<
                     <ActionGroup className="create_pipeline-footer">
                       <Button
                         variant="primary"
-                        // isDisabled={
-                        //   !(isSourceConfigured && isDestinationConfigured)
-                        // }
-                        onClick={() => setEditStep((prevStep) => prevStep + 1)}
+                        onClick={() => {
+                          console.log("Save and next", selectedTransform);
+                          setEditStep((prevStep) => prevStep + 1);
+                        }}
                       >
                         Save and next
                       </Button>
-                      <Button
-                        variant="link"
-                        onClick={() => navigateTo("/pipeline")}
-                      >
+                      <Button variant="link" onClick={() => {}}>
                         Cancel
                       </Button>
                     </ActionGroup>
@@ -588,8 +618,8 @@ const PipelineDesignerEdit: React.FunctionComponent<
                 <ActionGroup className="create_pipeline-footer">
                   <Button
                     variant="primary"
-                    // isLoading={isLoading}
-                    // isDisabled={isLoading}
+                    isLoading={isLoading}
+                    isDisabled={isLoading}
                     type={ButtonType.submit}
                     onClick={(e) => {
                       e.preventDefault();
@@ -597,12 +627,11 @@ const PipelineDesignerEdit: React.FunctionComponent<
                       if (!values["pipeline-name"]) {
                         setError("pipeline-name", "Pipeline name is required.");
                       } else {
-                        // handleEditPipeline(values);
-                        console.log("Edit pipeline", values);
+                        handleEditPipeline(values);
                       }
                     }}
                   >
-                    Save changes
+                    Update pipeline
                   </Button>
                   <Button
                     variant="link"

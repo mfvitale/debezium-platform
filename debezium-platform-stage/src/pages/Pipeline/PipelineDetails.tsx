@@ -17,7 +17,6 @@ import { API_URL } from "../../utils/constants";
 import "./PipelineDetails.css";
 import PipelineLog from "./PipelineLog";
 import PipelineOverview from "./PipelineOverview";
-// import { EditPipeline } from "./EditPipeline";
 import { PipelineDesignerEdit } from "./PipelineDesignerEdit";
 
 const PipelineDetails: React.FunctionComponent = () => {
@@ -159,7 +158,8 @@ const PipelineDetails: React.FunctionComponent = () => {
                 transforms={pipeline?.transforms}
                 name={pipeline?.name}
                 desc={pipeline.description || ""}
-                logLevel={pipeline.logLevel}
+                definedLogLevel={pipeline.logLevel}
+                pipelineId={pipeline.id}
               />
             )}
           </TabContentBody>

@@ -541,18 +541,6 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
         dataDestinationNode,
       ]);
     } else {
-      // const defaultTransformationNode = {
-      //   id: "add_transformation",
-      //   data: {
-      //     label: "Transformation",
-      //     sourcePosition: Position.Right,
-      //     targetPosition: Position.Left,
-      //   },
-      //   position: { x: 300, y: 45 },
-      //   targetPosition: Position.Left,
-      //   type: "addTransformation",
-      //   draggable: false,
-      // };
 
       const transformSelectorNode = {
           id: "transform_selector",
