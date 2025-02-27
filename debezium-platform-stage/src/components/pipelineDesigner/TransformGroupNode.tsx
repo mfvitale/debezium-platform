@@ -1,5 +1,4 @@
 import { Content, Tooltip } from "@patternfly/react-core";
-import { Position } from "reactflow";
 import "./TransformGroupNode.css";
 import { AngleDownIcon, PencilAltIcon } from "@patternfly/react-icons";
 import { AppColors } from "@utils/constants";
@@ -8,8 +7,8 @@ import { useData } from "@appContext/AppContext";
 interface TransformGroupNodeProps {
   data: {
     label: string;
-    sourcePosition: Position;
-    targetPosition: Position;
+    // sourcePosition: Position;
+    // targetPosition: Position;
     handleCollapsed: () => void;
     onToggleDrawer?: () => void;
   };

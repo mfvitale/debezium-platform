@@ -1,4 +1,3 @@
-import { Position } from "reactflow";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 import { Card, CardBody, Stack, StackItem } from "@patternfly/react-core";
@@ -7,8 +6,8 @@ import { DataProcessorIcon } from "@patternfly/react-icons";
 interface TransformSelectorNodeProps {
   data: {
     label: string;
-    sourcePosition: Position;
-    targetPosition: Position;
+    // sourcePosition: Position;
+    // targetPosition: Position;
     action: React.ReactNode;
   };
 }

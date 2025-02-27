@@ -1,5 +1,4 @@
 import { Button } from "@patternfly/react-core";
-import { Position } from "reactflow";
 import "./TransformAdditionNode.css";
 
 import { PlusIcon } from "@patternfly/react-icons";
@@ -9,8 +8,8 @@ import { AppColors } from "@utils/constants";
 interface TransformAdditionNodeProps {
   data: {
     label: string;
-    sourcePosition: Position;
-    targetPosition: Position;
+    // sourcePosition: Position;
+    // targetPosition: Position;
     action: React.ReactNode;
   };
 }

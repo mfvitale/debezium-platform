@@ -130,8 +130,6 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
       id: "transform_group",
       data: {
         label: "Transform",
-        sourcePosition: "right",
-        targetPosition: "left",
         handleCollapsed: handleCollapsed,
       },
       position: { x: 260, y: 25 },
@@ -194,8 +192,6 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
       id: "transform_selected",
       data: {
         label: "Transformation",
-        sourcePosition: "right",
-        targetPosition: "left",
         handleExpand: handleExpand,
         selectedTransform: selectedTransformRef,
       },
@@ -216,8 +212,6 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
       id,
       data: {
         label: transformName,
-        sourcePosition: "left",
-        targetPosition: "right",
         ...(transformPredicate?.type && {
           predicate: {
             label: transformPredicate.type.split(".").pop(),
@@ -286,8 +280,6 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
         id: "transform_group",
         data: {
           label: "Transform",
-          sourcePosition: "right",
-          targetPosition: "left",
           handleCollapsed: handleCollapsed,
         },
         position: { x: 260, y: 25 },
@@ -322,8 +314,6 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
         id: "add_transformation",
         data: {
           label: "Transformation",
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
         },
         position: { x: 300, y: 45 },
         targetPosition: Position.Left,

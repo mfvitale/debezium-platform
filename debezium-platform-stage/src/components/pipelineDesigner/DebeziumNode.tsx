@@ -1,4 +1,3 @@
-import { Position } from "reactflow";
 import "./DebeziumNode.css";
 
 import dbz from "../../assets/debeziumNoText.png";
@@ -8,8 +7,8 @@ import { AppColors } from "@utils/constants";
 interface DebeziumNodeProps {
   data: {
     label: string;
-    sourcePosition: Position;
-    targetPosition: Position;
+    // sourcePosition: Position;
+    // targetPosition: Position;
     handleCollapsed: () => void;
   };
 }

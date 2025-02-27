@@ -16,12 +16,10 @@ import ReactFlow, {
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 import DataNode from "./DataNode";
-// import UnifiedCustomEdge from "./UnifiedCustomEdge";
 import { Predicate, Transform, TransformData } from "src/apis";
 import TransformLinkNode from "./TransformLinkNode";
 import TransformGroupNode from "./TransformGroupNode";
 import TransformCollapsedNode from "./TransformCollapsedNode";
-// import UnifiedMultiEdge from "./UnifiedMultiEdge";
 import { Modal, ModalHeader, ModalBody, Button } from "@patternfly/react-core";
 import PipelineTransformModel from "./PipelineTransformModel";
 import { PlusIcon } from "@patternfly/react-icons";
@@ -39,9 +37,7 @@ const nodeTypes = {
 };
 
 const edgeTypes = {
-  // unifiedCustomEdge: UnifiedCustomEdge,
-  // unifiedMultiCustomEdge: UnifiedMultiEdge,
-  editUnifiedCustomEdge: EditUnifiedCustomEdge
+  editUnifiedCustomEdge: EditUnifiedCustomEdge,
 };
 
 const proOptions = { hideAttribution: true };
@@ -120,13 +116,10 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
   selectedTransformRef.current = selectedTransform;
 
   const handleProcessor = useCallback(() => {
-
     const transformGroupNode = {
       id: "transform_group",
       data: {
         label: "Transform",
-        sourcePosition: "right",
-        targetPosition: "left",
         onToggleDrawer: openTransformDrawer,
         handleCollapsed: handleCollapsed,
       },
@@ -144,8 +137,6 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
       id: "add_transform",
       data: {
         label: "SMT2",
-        sourcePosition: "right",
-        targetPosition: "left",
         action: cardButtonTransform(),
       },
       position: { x: 25 + selectedTransformRef.current.length * 150, y: 33 },
@@ -165,27 +156,9 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
         transformGroupNode,
       ];
     });
-    setEdges([
-      {
-        id: "source-add_transform",
-        source: "source",
-        target: "add_transform",
-        type: "customEdgeSource",
-        sourceHandle: "a",
-      },
-      {
-        id: "add_transform-destination",
-        source: "add_transform",
-        target: "destination",
-        type: "customEdgeDestination",
-      },
-    ]);
   }, [cardButtonTransform, openTransformDrawer]);
 
-
   const handleExpand = useCallback(() => {
-
-    // console.log("selectedTransform", selectedTransform, "selectedTransformRef", selectedTransformRef.current);
     const linkTransforms = selectedTransformRef.current.map((transform, id) => {
       const newId = `transform_${id + 1}`;
       const xPosition = 25 + id * 150;
@@ -200,8 +173,6 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
       id: "transform_group",
       data: {
         label: "Transform",
-        sourcePosition: "right",
-        targetPosition: "left",
         onToggleDrawer: openTransformDrawer,
         handleCollapsed: handleCollapsed,
       },
@@ -219,8 +190,6 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
       id: "add_transform",
       data: {
         label: "SMT2",
-        sourcePosition: "right",
-        targetPosition: "left",
         action: cardButtonTransform(),
       },
       position: { x: 25 + selectedTransformRef.current.length * 150, y: 33 },
@@ -285,8 +254,6 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
       id: "transform_selected",
       data: {
         label: "Transformation",
-        sourcePosition: "right",
-        targetPosition: "left",
         handleExpand: handleExpand,
         selectedTransform: selectedTransformRef,
       },
@@ -307,8 +274,6 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
       id,
       data: {
         label: transformName,
-        sourcePosition: "left",
-        targetPosition: "right",
         ...(transformPredicate?.type && {
           predicate: {
             label: transformPredicate.type.split(".").pop(),
@@ -350,112 +315,105 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
     });
   }, [TransformCollapsedNode]);
 
+  const handleAddTransform = useCallback(
+    (transform: TransformData) => {
+      const transformNode = nodes.filter((node: any) => {
+        return node.parentId === "transform_group";
+      });
+      let noOfTransformNodes = transformNode.length;
+      if (noOfTransformNodes === 0) {
+        handleProcessor();
+        noOfTransformNodes = 1;
+      }
+      const transformLinkNode = transformNode.filter((node: any) => {
+        return node.id !== "add_transform";
+      });
+      const transformID =
+        noOfTransformNodes === 1
+          ? 1
+          : +transformLinkNode[transformLinkNode.length - 1].id.split("_")[1] +
+            1;
 
-    const handleAddTransform = useCallback(
-      (transform: TransformData) => {
-        const transformNode = nodes.filter((node: any) => {
-          return node.parentId === "transform_group";
-        });
-        let noOfTransformNodes = transformNode.length;
-        if (noOfTransformNodes === 0) {
-          handleProcessor();
-          noOfTransformNodes = 1;
-        }
-        const transformLinkNode = transformNode.filter((node: any) => {
-          return node.id !== "add_transform";
-        });
-        // console.log("transformLinkNode", transformLinkNode);
-        const transformID =
-          noOfTransformNodes === 1
-            ? 1
-            : +transformLinkNode[transformLinkNode.length - 1].id.split("_")[1] +
-              1;
-        // console.log("transformID", transformID);
-  
-        const newId = `transform_${transformID}`;
-        const xPosition = 25 + (noOfTransformNodes - 1) * 150;
-  
-        // console.log("xPosition", xPosition);
-        const newTransformNode = createNewTransformNode(
-          newId,
-          xPosition,
-          transform.name,
-          transform.predicate
+      const newId = `transform_${transformID}`;
+      const xPosition = 25 + (noOfTransformNodes - 1) * 150;
+
+      const newTransformNode = createNewTransformNode(
+        newId,
+        xPosition,
+        transform.name,
+        transform.predicate
+      );
+
+      setNodes((prevNodes: any) => {
+        const addTransformNode = prevNodes.find(
+          (node: any) => node.id === "add_transform"
         );
-  
-        setNodes((prevNodes: any) => {
-          const addTransformNode = prevNodes.find(
-            (node: any) => node.id === "add_transform"
-          );
-          const transformGroupNode = prevNodes.find(
-            (node: any) => node.id === "transform_group"
-          );
-          const dataSelectorDestinationNode = prevNodes.find(
-            (node: any) => node.id === "destination"
-          );
-  
-          const updatedAddTransformNode = {
-            ...addTransformNode,
-            position: {
-              ...addTransformNode.position,
-              x: addTransformNode.position.x + 150,
-            },
-          };
-          const updatedDataSelectorDestinationNode = {
-            ...dataSelectorDestinationNode,
-            position: {
-              ...dataSelectorDestinationNode.position,
-              x: dataSelectorDestinationNode.position.x + 150,
-            },
-          };
-          const updatedTransformGroupNode = {
-            ...transformGroupNode,
-            style: {
-              ...transformGroupNode.style,
-              width: transformGroupNode.style.width + 150,
-            },
-          };
-  
-          return [
-            ...prevNodes.filter(
-              (node: any) =>
-                node.id !== "add_transform" &&
-                node.id !== "transform_group" &&
-                node.id !== "destination"
-            ),
-            newTransformNode,
-            updatedAddTransformNode,
-            updatedTransformGroupNode,
-            updatedDataSelectorDestinationNode,
-          ];
-        });
-        let newEdge: {
-          id: string;
-          source: string;
-          target: string;
-          data: { throughNodeNo: number };
-          type: string;
-        }[] = [];
-  
-        newEdge = [
-          {
-            id: "complete-multi-flow-path",
-            source: "source",
-            target: "destination",
-            type: "editUnifiedCustomEdge",
-            data: { throughNodeNo: noOfTransformNodes },
+        const transformGroupNode = prevNodes.find(
+          (node: any) => node.id === "transform_group"
+        );
+        const dataSelectorDestinationNode = prevNodes.find(
+          (node: any) => node.id === "destination"
+        );
+
+        const updatedAddTransformNode = {
+          ...addTransformNode,
+          position: {
+            ...addTransformNode.position,
+            x: addTransformNode.position.x + 150,
           },
+        };
+        const updatedDataSelectorDestinationNode = {
+          ...dataSelectorDestinationNode,
+          position: {
+            ...dataSelectorDestinationNode.position,
+            x: dataSelectorDestinationNode.position.x + 150,
+          },
+        };
+        const updatedTransformGroupNode = {
+          ...transformGroupNode,
+          style: {
+            ...transformGroupNode.style,
+            width: transformGroupNode.style.width + 150,
+          },
+        };
+
+        return [
+          ...prevNodes.filter(
+            (node: any) =>
+              node.id !== "add_transform" &&
+              node.id !== "transform_group" &&
+              node.id !== "destination"
+          ),
+          newTransformNode,
+          updatedAddTransformNode,
+          updatedTransformGroupNode,
+          updatedDataSelectorDestinationNode,
         ];
-  
-        setEdges([...newEdge]);
-        updateSelectedTransform({ name: transform.name, id: transform.id });
-        setIsTransformModalOpen(false);
-      },
-      [nodes, 
-        updateSelectedTransform, 
-        handleProcessor
-      ]
-    );
+      });
+      let newEdge: {
+        id: string;
+        source: string;
+        target: string;
+        data: { throughNodeNo: number };
+        type: string;
+      }[] = [];
+
+      newEdge = [
+        {
+          id: "complete-multi-flow-path",
+          source: "source",
+          target: "destination",
+          type: "editUnifiedCustomEdge",
+          data: { throughNodeNo: noOfTransformNodes },
+        },
+      ];
+
+      setEdges([...newEdge]);
+      updateSelectedTransform({ name: transform.name, id: transform.id });
+      setIsTransformModalOpen(false);
+    },
+    [nodes, updateSelectedTransform, handleProcessor]
+  );
 
   useEffect(() => {
     const dataSourceNode = {
@@ -476,7 +434,7 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
         const newTransformNode = createNewTransformNode(
           newId,
           xPosition,
-          transform.name,
+          transform.name
           // transform.predicate
         );
         return newTransformNode;
@@ -486,8 +444,6 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
         id: "add_transform",
         data: {
           label: "SMT2",
-          sourcePosition: "right",
-          targetPosition: "left",
           action: cardButtonTransform(),
         },
         position: { x: 25 + selectedTransform.length * 150, y: 33 },
@@ -504,8 +460,6 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
         id: "transform_group",
         data: {
           label: "Transform",
-          sourcePosition: "right",
-          targetPosition: "left",
           onToggleDrawer: openTransformDrawer,
           handleCollapsed: handleCollapsed,
         },
@@ -539,30 +493,27 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
         dataDestinationNode,
       ]);
     } else {
-
       const transformSelectorNode = {
-          id: "transform_selector",
-          data: {
-            label: "Transformation",
-            sourcePosition: "left",
-            targetPosition: "right",
-            action: (<Button
+        id: "transform_selector",
+        data: {
+          label: "Transformation",
+          action: (
+            <Button
               variant="link"
-              onClick={
-               handleTransformModalToggle
-              }
+              onClick={handleTransformModalToggle}
               style={{ paddingRight: 5, paddingLeft: 5, fontSize: ".8em" }}
               icon={<PlusIcon />}
               size="sm"
             >
               Transform
-            </Button>),
-          },
-          position: { x: 280, y: 45 },
-          targetPosition: Position.Left,
-          type: "transformSelectorNode",
-          draggable: false,
-        };
+            </Button>
+          ),
+        },
+        position: { x: 280, y: 45 },
+        targetPosition: Position.Left,
+        type: "transformSelectorNode",
+        draggable: false,
+      };
 
       const dataDestinationNode = {
         id: "destination",
@@ -575,11 +526,7 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
         type: "dataNode",
         draggable: false,
       };
-      setNodes([
-        dataSourceNode,
-        transformSelectorNode,
-        dataDestinationNode,
-      ]);
+      setNodes([dataSourceNode, transformSelectorNode, dataDestinationNode]);
     }
     setEdges([
       {
@@ -591,7 +538,18 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
         sourceHandle: "a",
       },
     ]);
-  }, [openTransformDrawer, destinationName, destinationType, handleCollapsed, selectedTransform, setNodes, sourceName, sourceType, cardButtonTransform, handleTransformModalToggle]);
+  }, [
+    openTransformDrawer,
+    destinationName,
+    destinationType,
+    handleCollapsed,
+    selectedTransform,
+    setNodes,
+    sourceName,
+    sourceType,
+    cardButtonTransform,
+    handleTransformModalToggle,
+  ]);
 
   return (
     <>
@@ -624,14 +582,14 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
             color={darkMode ? AppColors.dark : AppColors.white}
           />
           <svg>
-          <defs>
-            <linearGradient id="edge-gradient-edit">
-              <stop offset="0%" stopColor="#a5c82d" />
-              <stop offset="50%" stopColor="#7fc5a5" />
-              <stop offset="100%" stopColor="#58b2da" />
-            </linearGradient>
-          </defs>
-        </svg>
+            <defs>
+              <linearGradient id="edge-gradient-edit">
+                <stop offset="0%" stopColor="#a5c82d" />
+                <stop offset="50%" stopColor="#7fc5a5" />
+                <stop offset="100%" stopColor="#58b2da" />
+              </linearGradient>
+            </defs>
+          </svg>
         </ReactFlow>
       </div>
       <Modal

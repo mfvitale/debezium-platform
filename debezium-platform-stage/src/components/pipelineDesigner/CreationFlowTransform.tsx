@@ -165,8 +165,6 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       id: "add_transform",
       data: {
         label: "SMT2",
-        sourcePosition: "right",
-        targetPosition: "left",
         action: cardButtonTransform(),
       },
       position: { x: 45, y: 40 },
@@ -186,8 +184,6 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       id: "transform_selector",
       data: {
         label: "Transformation",
-        sourcePosition: "left",
-        targetPosition: "right",
         action: cardButton("Transform"),
       },
       position: { x: 269, y: 79 },
@@ -271,8 +267,6 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       id,
       data: {
         label: transformName,
-        sourcePosition: "left",
-        targetPosition: "right",
         ...(transformPredicate?.type && {
           predicate: {
             label: transformPredicate.type.split(".").pop(),
@@ -304,7 +298,6 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
         (transform: Transform) => transform.name === node.data.label
       );
     });
-
     let updatedTransformLinkNodes: never[] = [];
     if (filteredTransformLinkNode.length === 0) {
       setNodes((prevNodes: any) => {
@@ -329,17 +322,26 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
     } else if (filteredTransformLinkNode.length < transformLinkNodes.length) {
       updatedTransformLinkNodes = filteredTransformLinkNode.map(
         (node: any, index: number) => {
-          return {
+          const matchingNode = filteredTransformLinkNode.find(
+            (filteredNode: any) =>
+              filteredNode.data.label === selectedTransformRef.current[index]?.name
+            );
+            return {
             ...node,
             data: {
               ...node.data,
               label: selectedTransformRef.current[index]?.name,
+              ...(matchingNode?.data.predicate && {
+              predicate: {
+                ...matchingNode.data.predicate,
+              },
+              }),
             },
             position: {
               ...node.position,
               x: 25 + index * 150,
             },
-          };
+            };
         }
       );
       const updateAddTransformNode = nodes.filter(
@@ -393,14 +395,24 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       return;
     } else if (filteredTransformLinkNode.length === transformLinkNodes.length) {
       updatedTransformLinkNodes = filteredTransformLinkNode.map(
-        (node: any, index: number) => ({
+        (node: any, index: number) => {
+          const matchingNode = filteredTransformLinkNode.find(
+            (filteredNode: any) =>
+              filteredNode.data.label === selectedTransformRef.current[index]?.name
+            );
+          return {
           ...node,
           data: {
-            ...node.data,
             label: selectedTransformRef.current[index]?.name,
+            ...(matchingNode?.data.predicate && {
+            predicate: {
+              ...matchingNode.data.predicate,
+            },
+            }),
           },
-        })
+        }}
       );
+     
     }
     setNodes((prevNodes: any) => {
       return [
@@ -425,8 +437,6 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       id: "transform_group",
       data: {
         label: "Transform",
-        sourcePosition: "right",
-        targetPosition: "left",
         onToggleDrawer: onToggleDrawer,
         handleCollapsed: handleCollapsed,
       },
@@ -444,8 +454,6 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       id: "add_transform",
       data: {
         label: "SMT2",
-        sourcePosition: "right",
-        targetPosition: "left",
         action: cardButtonTransform(),
       },
       position: { x: 45 + selectedTransformRef.current.length * 150, y: 36 },
@@ -512,8 +520,6 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       id: "transform_selected",
       data: {
         label: "Transformation",
-        sourcePosition: "right",
-        targetPosition: "left",
         handleExpand: handleExpand,
         selectedTransform: selectedTransformRef,
       },
@@ -575,8 +581,6 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       id: "transform_group",
       data: {
         label: "Transform",
-        sourcePosition: "right",
-        targetPosition: "left",
         onToggleDrawer: onToggleDrawer,
         handleCollapsed: handleCollapsed,
       },
@@ -614,18 +618,18 @@ const CreationFlowTransform: React.FC<CreationFlowTransformProps> = ({
       const transformLinkNode = transformNode.filter((node: any) => {
         return node.id !== "add_transform";
       });
-      console.log("transformLinkNode", transformLinkNode);
+      // console.log("transformLinkNode", transformLinkNode);
       const transformID =
         noOfTransformNodes === 1
           ? 1
           : +transformLinkNode[transformLinkNode.length - 1].id.split("_")[1] +
             1;
-      console.log("transformID", transformID);
+      // console.log("transformID", transformID);
 
       const newId = `transform_${transformID}`;
       const xPosition = 25 + (noOfTransformNodes - 1) * 150;
 
-      console.log("xPosition", xPosition);
+      // console.log("xPosition", xPosition);
       const newTransformNode = createNewTransformNode(
         newId,
         xPosition,

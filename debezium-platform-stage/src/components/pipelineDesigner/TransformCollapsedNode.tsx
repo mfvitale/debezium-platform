@@ -1,4 +1,3 @@
-import { Position } from "reactflow";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 import {
@@ -18,8 +17,8 @@ import { Transform } from "src/apis";
 interface TransformCollapsedNodeProps {
   data: {
     label: string;
-    sourcePosition: Position;
-    targetPosition: Position;
+    // sourcePosition: Position;
+    // targetPosition: Position;
     handleExpand: () => void;
     selectedTransform: React.MutableRefObject<Transform[]>;
   };

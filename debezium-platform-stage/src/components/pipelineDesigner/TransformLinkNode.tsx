@@ -8,7 +8,6 @@ import {
   Stack,
   StackItem,
 } from "@patternfly/react-core";
-import { Position } from "reactflow";
 import "./TransformLinkNode.css";
 
 import { DataProcessorIcon, FilterIcon } from "@patternfly/react-icons";
@@ -23,8 +22,8 @@ type Predicate = {
 interface TransformLinkNodeProps {
   data: {
     label: string;
-    sourcePosition: Position;
-    targetPosition: Position;
+    // sourcePosition: Position;
+    // targetPosition: Position;
     predicate?: Predicate;
   };
 }
