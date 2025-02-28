@@ -1,4 +1,3 @@
-import { Handle, Position } from "reactflow";
 import "./DebeziumNode.css";
 
 import dbz from "../../assets/debeziumNoText.png";
@@ -8,13 +7,13 @@ import { AppColors } from "@utils/constants";
 interface DebeziumNodeProps {
   data: {
     label: string;
-    sourcePosition: Position;
-    targetPosition: Position;
+    // sourcePosition: Position;
+    // targetPosition: Position;
     handleCollapsed: () => void;
   };
 }
 
-const DebeziumNode: React.FC<DebeziumNodeProps> = ({ data }) => {
+const DebeziumNode: React.FC<DebeziumNodeProps> = () => {
   const { darkMode } = useData();
   return (
     <>
@@ -33,17 +32,17 @@ const DebeziumNode: React.FC<DebeziumNodeProps> = ({ data }) => {
                 }
           }
         >
-          <Handle type="target" id="smt-input" position={data.targetPosition} />
+          {/* <Handle type="target" id="smt-input" position={data.targetPosition} /> */}
           <img
             src={dbz}
             alt={`Debezium icon`}
             style={{ maxHeight: "60px", padding: "5px" }}
           />
-          <Handle
+          {/* <Handle
             type="source"
             id="smt-output"
             position={data.sourcePosition}
-          />
+          /> */}
         </div>
       </div>
       {/* <foreignObject>

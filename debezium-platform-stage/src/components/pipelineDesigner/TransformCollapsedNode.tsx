@@ -1,5 +1,3 @@
-import { Handle, Position } from "reactflow";
-import "./DebeziumNode.css";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
 import {
@@ -19,8 +17,8 @@ import { Transform } from "src/apis";
 interface TransformCollapsedNodeProps {
   data: {
     label: string;
-    sourcePosition: Position;
-    targetPosition: Position;
+    // sourcePosition: Position;
+    // targetPosition: Position;
     handleExpand: () => void;
     selectedTransform: React.MutableRefObject<Transform[]>;
   };
@@ -103,7 +101,7 @@ const TransformCollapsedNode: React.FC<TransformCollapsedNodeProps> = ({
                 }
           }
         >
-          <Handle type="target" id="smt-input" position={data.targetPosition} />
+          {/* <Handle type="target" id="smt-input" position={data.targetPosition} /> */}
           <Card
             ouiaId="BasicCard"
             isPlain
@@ -153,11 +151,11 @@ const TransformCollapsedNode: React.FC<TransformCollapsedNodeProps> = ({
               </Bullseye>
             </CardBody>
           </Card>
-          <Handle
+          {/* <Handle
             type="source"
             id="smt-output"
             position={data.sourcePosition}
-          />
+          /> */}
         </div>
       </div>
     </>
