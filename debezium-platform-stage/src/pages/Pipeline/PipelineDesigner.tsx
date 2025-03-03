@@ -41,7 +41,10 @@ export const selectedSourceAtom = atom<Source | undefined>(undefined);
 export const selectedDestinationAtom = atom<Destination | undefined>(undefined);
 export const selectedTransformAtom = atom<Transform[]>([]);
 
-const getItems = (selectedTransform: Transform[], onTempDelete: (id: string) => void): DraggableObject[] =>
+const getItems = (
+  selectedTransform: Transform[],
+  onTempDelete: (id: string) => void
+): DraggableObject[] =>
   selectedTransform.map((transform, idx) => ({
     id: `${idx}-${transform.id}=${transform.name}`,
     content: (
@@ -60,7 +63,9 @@ const getItems = (selectedTransform: Transform[], onTempDelete: (id: string) => 
         >
           <Tooltip content="Delete">
             <Button
-               onClick={() => onTempDelete(`${idx}-${transform.id}=${transform.name}`)}
+              onClick={() =>
+                onTempDelete(`${idx}-${transform.id}=${transform.name}`)
+              }
               variant="plain"
               key="delete-action"
               icon={<TrashIcon />}
@@ -76,8 +81,6 @@ const PipelineDesigner: React.FunctionComponent = () => {
 
   const [items, setItems] = React.useState<DraggableObject[]>([]);
 
-  const [tempDeletedItems, setTempDeletedItems] = React.useState<Set<string>>(new Set());
-
   const [isSourceConfigured, setIsSourceConfigured] = React.useState(false);
   const [isDestinationConfigured, setIsDestinationConfigured] =
     React.useState(false);
@@ -92,39 +95,20 @@ const PipelineDesigner: React.FunctionComponent = () => {
 
   const [rearrangeTrigger, setRearrangeTrigger] = React.useState(false);
 
-  // // Function to handle rearrange apply button click
-  // const handleRearrangeClick = () => {
-  //   const updatedTransforms = items.map((item) => {
-  //     const [id, name] = String(item.id).split("=");
-  //     return { id: Number(id), name };
-  //   });
-  //   console.log("updatedTransforms", updatedTransforms);
-  //   setSelectedTransform(updatedTransforms);
-
-  //   setRearrangeTrigger((prev) => !prev); // Toggle to trigger rearrangement in child
-  //   onToggleDrawer();
-  // };
-
   const [isExpanded, setIsExpanded] = React.useState(false);
   const drawerRef = React.useRef<HTMLDivElement>();
 
-   // Handle temporary deletion of items
-   const handleTempDelete = React.useCallback((id: string) => {
-    setTempDeletedItems(prev => {
-      const newSet = new Set(prev);
-      newSet.add(id);
-      return newSet;
-    });
-    setItems(prevItems => prevItems.filter(item => item.id !== id));
+  // Handle temporary deletion of items
+  const handleTempDelete = React.useCallback((id: string) => {
+    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
   }, []);
 
- // Initialize items when selectedTransform changes
- React.useEffect(() => {
-  if (selectedTransform.length > 0) {
-    setItems(getItems(selectedTransform, handleTempDelete));
-    setTempDeletedItems(new Set()); // Reset deleted items when transforms change
-  }
-}, [selectedTransform, handleTempDelete]);
+  // Initialize items when selectedTransform changes
+  React.useEffect(() => {
+    if (selectedTransform.length > 0) {
+      setItems(getItems(selectedTransform, handleTempDelete));
+    }
+  }, [selectedTransform, handleTempDelete]);
 
   const onExpand = () => {
     drawerRef.current && drawerRef.current.focus();
@@ -134,7 +118,6 @@ const PipelineDesigner: React.FunctionComponent = () => {
     if (isExpanded) {
       // Reset temporary state when closing drawer without applying
       setItems(getItems(selectedTransform, handleTempDelete));
-      setTempDeletedItems(new Set());
     }
     setIsExpanded(!isExpanded);
   };
@@ -142,7 +125,6 @@ const PipelineDesigner: React.FunctionComponent = () => {
   const onCloseClick = () => {
     // Reset temporary state when closing drawer without applying
     setItems(getItems(selectedTransform, handleTempDelete));
-    setTempDeletedItems(new Set());
     setIsExpanded(false);
   };
 
@@ -185,16 +167,16 @@ const PipelineDesigner: React.FunctionComponent = () => {
     navigate(url);
   };
 
-     // Function to handle rearrange and delete apply button click
+  // Function to handle rearrange and delete apply button click
   const handleRearrangeClick = () => {
-    const updatedTransforms = items.map(item => {
-      const [indexId, name] = String(item.id).split('=');
-      const [_, id] = indexId.split('-');
+    const updatedTransforms = items.map((item) => {
+      const [indexId, name] = String(item.id).split("=");
+      const [_, id] = indexId.split("-");
       return { id: Number(id), name };
     });
-    
+
     setSelectedTransform(...[updatedTransforms]);
-    setRearrangeTrigger(prev => !prev);
+    setRearrangeTrigger((prev) => !prev);
     onToggleDrawer();
   };
 

@@ -65,8 +65,8 @@ import { useEffect, useState } from "react";
 import { API_URL } from "@utils/constants";
 import PipelineEditFlow from "@components/pipelineDesigner/PipelineEditFlow";
 import ConnectorImage from "@components/ComponentImage";
-import { CodeEditor, Language } from "@patternfly/react-code-editor";
 import { useNotification } from "@appContext/AppNotificationContext";
+import ApiError from "@components/ApiError";
 
 // Define Jotai atoms
 export const selectedSourceAtom = atom<Source | undefined>(undefined);
@@ -134,19 +134,13 @@ const PipelineDesignerEdit: React.FunctionComponent<
   const [items, setItems] = React.useState<DraggableObject[]>([]);
   const [editStep, setEditStep] = useState(0);
 
-  const [editorSelected, setEditorSelected] = useState("form-editor");
-
   const { addNotification } = useNotification();
-
-  // const [tempDeletedItems, setTempDeletedItems] = React.useState<Set<string>>(
-  //   new Set()
-  // );
 
   const [selectedTransform, setSelectedTransform] = useAtom(
     selectedTransformAtom
   );
 
-  const [rearrangeTrigger, setRearrangeTrigger] = React.useState(false);
+  // const [rearrangeTrigger, setRearrangeTrigger] = React.useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -207,11 +201,6 @@ const PipelineDesignerEdit: React.FunctionComponent<
 
   // Handle temporary deletion of items
   const handleTempDelete = React.useCallback((id: string) => {
-    // setTempDeletedItems((prev) => {
-    //   const newSet = new Set(prev);
-    //   newSet.add(id);
-    //   return newSet;
-    // });
     setItems((prevItems) => prevItems.filter((item) => item.id !== id));
   }, []);
 
@@ -219,7 +208,6 @@ const PipelineDesignerEdit: React.FunctionComponent<
   useEffect(() => {
     if (selectedTransform.length > 0) {
       setItems(getItems(selectedTransform, handleTempDelete));
-      // setTempDeletedItems(new Set()); // Reset deleted items when transforms change
     }
   }, [selectedTransform, handleTempDelete]);
 
@@ -231,7 +219,6 @@ const PipelineDesignerEdit: React.FunctionComponent<
     if (isExpanded) {
       // Reset temporary state when closing drawer without applying
       setItems(getItems(selectedTransform, handleTempDelete));
-      // setTempDeletedItems(new Set());
     }
     setIsExpanded(!isExpanded);
   };
@@ -239,7 +226,6 @@ const PipelineDesignerEdit: React.FunctionComponent<
   const onCloseClick = () => {
     // Reset temporary state when closing drawer without applying
     setItems(getItems(selectedTransform, handleTempDelete));
-    // setTempDeletedItems(new Set());
     setIsExpanded(false);
   };
 
@@ -263,7 +249,7 @@ const PipelineDesignerEdit: React.FunctionComponent<
     });
 
     setSelectedTransform(...[updatedTransforms]);
-    setRearrangeTrigger((prev) => !prev);
+    // setRearrangeTrigger((prev) => !prev);
     onToggleDrawer();
   };
 
@@ -376,6 +362,24 @@ const PipelineDesignerEdit: React.FunctionComponent<
     </DrawerPanelContent>
   );
 
+  if (error) {
+    return (
+      <PageSection isWidthLimited>
+        <ApiError
+          errorType="large"
+          errorMsg={error}
+          secondaryActions={
+            <>
+              <Button variant="link" onClick={() => navigateTo("/pipeline")}>
+                Go to home
+              </Button>
+            </>
+          }
+        />
+      </PageSection>
+    );
+  }
+
   return (
     <>
       {editStep === 0 ? (
@@ -423,27 +427,27 @@ const PipelineDesignerEdit: React.FunctionComponent<
           </DrawerContent>
         </Drawer>
       ) : (
-        <FormContextProvider
-          initialValues={{
-            "pipeline-name": name || "",
-            descriptions: desc || "",
-          }}
-        >
-          {({ setValue, getValue, setError, values, errors }) => (
-            <>
-              <PageSection
-                isWidthLimited={editorSelected === "form-editor"}
-                isCenterAligned
-                isFilled
-                style={{
-                  paddingTop: "0",
-                  paddingLeft: "0",
-                  paddingRight: "0",
-                  height: "100%",
-                }}
-                className="pipeline-page-section"
-              >
-                {editorSelected === "form-editor" ? (
+        <>
+          <FormContextProvider
+            initialValues={{
+              "pipeline-name": name || "",
+              descriptions: desc || "",
+            }}
+          >
+            {({ setValue, getValue, setError, values, errors }) => (
+              <>
+                <PageSection
+                  isWidthLimited
+                  isCenterAligned
+                  isFilled
+                  style={{
+                    paddingTop: "0",
+                    paddingLeft: "0",
+                    paddingRight: "0",
+                    height: "100%",
+                  }}
+                  className="pipeline-page-section"
+                >
                   <Card className="pipeline-card-body">
                     <CardBody isFilled>
                       <Form isWidthLimited>
@@ -602,48 +606,41 @@ const PipelineDesignerEdit: React.FunctionComponent<
                       </Form>
                     </CardBody>
                   </Card>
-                ) : (
-                  <CodeEditor
-                    isUploadEnabled
-                    isDownloadEnabled
-                    isCopyEnabled
-                    isLanguageLabelVisible
-                    isMinimapVisible
-                    language={Language.yaml}
-                    height="450px"
-                  />
-                )}
-              </PageSection>
-              <PageSection className="pf-m-sticky-bottom" isFilled={false}>
-                <ActionGroup className="create_pipeline-footer">
-                  <Button
-                    variant="primary"
-                    isLoading={isLoading}
-                    isDisabled={isLoading}
-                    type={ButtonType.submit}
-                    onClick={(e) => {
-                      e.preventDefault();
+                </PageSection>
+                <PageSection className="pf-m-sticky-bottom" isFilled={false}>
+                  <ActionGroup className="create_pipeline-footer">
+                    <Button
+                      variant="primary"
+                      isLoading={isLoading}
+                      isDisabled={isLoading}
+                      type={ButtonType.submit}
+                      onClick={(e) => {
+                        e.preventDefault();
 
-                      if (!values["pipeline-name"]) {
-                        setError("pipeline-name", "Pipeline name is required.");
-                      } else {
-                        handleEditPipeline(values);
-                      }
-                    }}
-                  >
-                    Update pipeline
-                  </Button>
-                  <Button
-                    variant="link"
-                    onClick={() => setEditStep((prevStep) => prevStep - 1)}
-                  >
-                    Back
-                  </Button>
-                </ActionGroup>
-              </PageSection>
-            </>
-          )}
-        </FormContextProvider>
+                        if (!values["pipeline-name"]) {
+                          setError(
+                            "pipeline-name",
+                            "Pipeline name is required."
+                          );
+                        } else {
+                          handleEditPipeline(values);
+                        }
+                      }}
+                    >
+                      Update pipeline
+                    </Button>
+                    <Button
+                      variant="link"
+                      onClick={() => setEditStep((prevStep) => prevStep - 1)}
+                    >
+                      Back
+                    </Button>
+                  </ActionGroup>
+                </PageSection>
+              </>
+            )}
+          </FormContextProvider>
+        </>
       )}
     </>
   );
