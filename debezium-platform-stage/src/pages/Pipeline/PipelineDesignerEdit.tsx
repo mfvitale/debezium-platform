@@ -362,23 +362,23 @@ const PipelineDesignerEdit: React.FunctionComponent<
     </DrawerPanelContent>
   );
 
-  // if (error) {
-  //   return (
-  //     <PageSection isWidthLimited>
-  //       <ApiError
-  //         errorType="large"
-  //         errorMsg={error}
-  //         secondaryActions={
-  //           <>
-  //             <Button variant="link" onClick={() => navigateTo("/pipeline")}>
-  //               Go to home
-  //             </Button>
-  //           </>
-  //         }
-  //       />
-  //     </PageSection>
-  //   );
-  // }
+  if (error) {
+    return (
+      <PageSection isWidthLimited>
+        <ApiError
+          errorType="large"
+          errorMsg={error}
+          secondaryActions={
+            <>
+              <Button variant="link" onClick={() => navigateTo("/pipeline")}>
+                Go to home
+              </Button>
+            </>
+          }
+        />
+      </PageSection>
+    );
+  }
 
   return (
     <>
