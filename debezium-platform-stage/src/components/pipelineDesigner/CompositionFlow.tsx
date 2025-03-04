@@ -59,14 +59,14 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
 
   const reactFlowInstance = useReactFlow();
 
-  const refitElements = () => {
+  const refitElements = useCallback(() => {
     setTimeout(() => {
       reactFlowInstance.fitView({
         padding: 0.2, // 20% padding
         duration: 200, // 200ms
       });
     }, 50);
-  };
+  }, [reactFlowInstance]);
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
@@ -78,19 +78,10 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [refitElements]);
 
   const initialNodes: never[] = [];
-  const initialEdges = [
-    {
-      id: "complete-flow-path",
-      source: "source",
-      target: "destination",
-      type: "unifiedCustomEdge",
-      data: { throughNode: "add_transformation" },
-      sourceHandle: "a",
-    },
-  ];
+  const initialEdges: never[] = [];
   const [nodes, setNodes] = useState<any>(initialNodes);
   const [edges, setEdges] = useState<any>(initialEdges);
 
@@ -110,6 +101,10 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
     },
     [setEdges]
   );
+
+  useEffect(() => {
+    refitElements();
+  }, [edges, nodes, refitElements]);
 
   const selectedTransformRef = useRef(selectedTransform);
   selectedTransformRef.current = selectedTransform;
@@ -176,10 +171,10 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
     }[] = [];
     newEdge = [
       {
-        id: "complete-multi-flow-path",
+        id: "complete-flow-path",
         source: "source",
         target: "destination",
-        type: "unifiedMultiCustomEdge",
+        type: "unifiedCustomEdge",
         data: { throughNodeNo: selectedTransformRef.current.length },
       },
     ];
@@ -195,7 +190,7 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
         handleExpand: handleExpand,
         selectedTransform: selectedTransformRef,
       },
-      position: { x: 300, y: 45 },
+      position: { x: 280, y: 45 },
       targetPosition: "left",
       type: "transformCollapsedNode",
       draggable: false,
@@ -338,6 +333,24 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
         dataDestinationNode,
       ]);
     }
+    let newEdge: {
+      id: string;
+      source: string;
+      target: string;
+      data: { throughNodeNo: number };
+      type: string;
+    }[] = [];
+    newEdge = [
+      {
+        id: "complete-flow-path",
+        source: "source",
+        target: "destination",
+        type: "unifiedCustomEdge",
+        data: { throughNodeNo: selectedTransformRef.current.length },
+      },
+    ];
+
+    setEdges([...newEdge]);
   }, [
     destinationName,
     destinationType,
@@ -349,36 +362,51 @@ const CompositionFlow: React.FC<CreationFlowProps> = ({
   ]);
 
   return (
-    <div ref={reactFlowWrapper} style={{ width: "100%", height: "100%" }}>
-      <ReactFlow
-        key={nodes.length}
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        proOptions={proOptions}
-        fitView
-        maxZoom={1.4}
-        minZoom={1.4}
-        onConnect={onConnect}
-        panOnScroll={true}
-        panOnScrollMode={PanOnScrollMode.Horizontal}
-        panOnDrag={true}
-        onInit={(instance) => {
-          instance.fitView({ padding: 0.2 });
+    <>
+      <div
+        ref={reactFlowWrapper}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        <Background
-          style={{
-            borderRadius: "5px",
+        <ReactFlow
+          key={nodes.length}
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          proOptions={proOptions}
+          fitView
+          fitViewOptions={{
+            padding: 0.2,
+            includeHiddenNodes: false,
           }}
-          gap={13}
-          color={darkMode ? AppColors.dark : AppColors.white}
-        />
-      </ReactFlow>
-    </div>
+          maxZoom={1.4}
+          minZoom={1.4}
+          onConnect={onConnect}
+          panOnScroll={true}
+          panOnScrollMode={PanOnScrollMode.Horizontal}
+          panOnDrag={true}
+          onInit={(instance) => {
+            instance.fitView({ padding: 0.2 });
+          }}
+        >
+          <Background
+            style={{
+              borderRadius: "5px",
+            }}
+            gap={13}
+            color={darkMode ? AppColors.dark : AppColors.white}
+          />
+        </ReactFlow>
+      </div>
+    </>
   );
 };
 

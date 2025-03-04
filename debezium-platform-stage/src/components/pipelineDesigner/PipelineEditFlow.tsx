@@ -12,6 +12,7 @@ import ReactFlow, {
   Connection,
   addEdge,
   PanOnScrollMode,
+  useReactFlow,
 } from "reactflow";
 import { useData } from "../../appLayout/AppContext";
 import { AppColors } from "@utils/constants";
@@ -62,6 +63,29 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
   openTransformDrawer,
 }) => {
   const { darkMode } = useData();
+
+  const reactFlowInstance = useReactFlow();
+  
+  const refitElements = useCallback(() => {
+    setTimeout(() => {
+      reactFlowInstance.fitView({
+        padding: 0.2, // 20% padding
+        duration: 200, // 200ms
+      });
+    }, 50);
+  }, [reactFlowInstance]);
+
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      refitElements();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [refitElements]);
 
   const [isTransformModalOpen, setIsTransformModalOpen] = useState(false);
 
@@ -114,6 +138,10 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
 
   const selectedTransformRef = useRef(selectedTransform);
   selectedTransformRef.current = selectedTransform;
+
+  useEffect(() => {
+    refitElements();
+  }, [edges, nodes, refitElements]);
 
   const handleProcessor = useCallback(() => {
     const transformGroupNode = {
@@ -553,7 +581,16 @@ const PipelineEditFlow: React.FC<PipelineEditFlowProps> = ({
 
   return (
     <>
-      <div style={{ width: "100%", height: "100%" }}>
+       <div
+        ref={reactFlowWrapper}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <ReactFlow
           key={nodes.length}
           nodes={nodes}
