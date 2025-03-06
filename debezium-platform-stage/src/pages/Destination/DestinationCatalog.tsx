@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as React from "react";
 import {
   Content,
   ContentVariants,
@@ -15,14 +14,27 @@ import {
 import { ListIcon, ThIcon } from "@patternfly/react-icons";
 import { useNavigate } from "react-router-dom";
 import { CatalogGrid } from "@components/CatalogGrid";
+import { FunctionComponent, useCallback, useState } from "react";
+import { Catalog } from "src/apis/types";
+import destinationCatalog from "../../__mocks__/data/DestinationCatalog.json";
+import { debounce } from "lodash";
+import _ from "lodash";
 
 export interface ISinkProps {
   sampleProp?: string;
 }
 
-const DestinationCatalog: React.FunctionComponent<ISinkProps> = () => {
+const DestinationCatalog: FunctionComponent<ISinkProps> = () => {
   const navigate = useNavigate();
-  const [isSelected, setIsSelected] = React.useState("toggle-group-icons-1");
+  const [isSelected, setIsSelected] = useState<"list" | "grid">("grid");
+
+  const [searchResult, setSearchResult] =
+    useState<Catalog[]>(destinationCatalog);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const onClear = () => {
+    onSearch?.("");
+  };
 
   const handleItemClick = (
     event:
@@ -31,8 +43,26 @@ const DestinationCatalog: React.FunctionComponent<ISinkProps> = () => {
       | React.KeyboardEvent<Element>
   ) => {
     const id = event.currentTarget.id;
-    setIsSelected(id);
+    setIsSelected(id.split("-")[2]);
   };
+
+  const debouncedSearch = useCallback(
+    debounce((searchQuery: string) => {
+      const filteredSource = _.filter(destinationCatalog, function (o) {
+        return o.name.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+      setSearchResult(filteredSource);
+    }, 700),
+    []
+  );
+
+  const onSearch = useCallback(
+    (value: string) => {
+      setSearchQuery(value);
+      debouncedSearch(value);
+    },
+    [debouncedSearch]
+  );
 
   const onDestinationSelection = (destinationId: string) => {
     navigate(`/destination/create_destination/${destinationId}`);
@@ -56,30 +86,38 @@ const DestinationCatalog: React.FunctionComponent<ISinkProps> = () => {
         >
           <ToolbarContent>
             <ToolbarItem>
-              <SearchInput aria-label="Items example search input" />
+              <SearchInput
+                aria-label="Items  search input"
+                placeholder="Search by name"
+                value={searchQuery}
+                onChange={(_event, value) => onSearch(value)}
+                onClear={onClear}
+              />
             </ToolbarItem>
             <ToolbarItem>
-              <ToggleGroup aria-label="Icon variant toggle group">
+              <ToggleGroup aria-label="Display variant toggle group">
                 <ToggleGroupItem
                   icon={<ThIcon />}
-                  aria-label="copy"
-                  buttonId="toggle-group-icons-1"
-                  isSelected={isSelected === "toggle-group-icons-1"}
+                  aria-label="grid"
+                  buttonId="toggle-group-grid"
+                  isSelected={isSelected === "grid"}
                   onChange={handleItemClick}
                 />
 
                 <ToggleGroupItem
                   icon={<ListIcon />}
-                  aria-label="share square"
-                  buttonId="toggle-group-icons-3"
-                  isSelected={isSelected === "toggle-group-icons-3"}
+                  aria-label="list"
+                  buttonId="toggle-group-list"
+                  isSelected={isSelected === "list"}
                   onChange={handleItemClick}
                 />
               </ToggleGroup>
             </ToolbarItem>
             <ToolbarGroup align={{ default: "alignEnd" }}>
               <ToolbarItem>
-                <Content component={ContentVariants.small}>12 Items</Content>
+                <Content component={ContentVariants.small}>
+                  {searchResult.length} Items
+                </Content>
               </ToolbarItem>
             </ToolbarGroup>
           </ToolbarContent>
@@ -88,7 +126,9 @@ const DestinationCatalog: React.FunctionComponent<ISinkProps> = () => {
       <CatalogGrid
         onCardSelect={onDestinationSelection}
         catalogType="destination"
-        isAddButtonVisible={true}
+        displayType={isSelected}
+        isAddButtonVisible={searchQuery.length === 0}
+        searchResult={searchResult}
       />
     </>
   );

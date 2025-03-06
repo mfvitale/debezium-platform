@@ -176,7 +176,7 @@ const Sources: React.FunctionComponent<ISourceProps> = () => {
               ) : (
                 <EmptyStatus
                   heading="No source available"
-                  primaryMessage=' No source is configure for this cluster yet. To streams change
+                  primaryMessage='No source is configure for this cluster yet. To streams change
             events from a source database you can configure a source by click
             the "Add source" button.'
                   secondaryMessage=""
@@ -197,6 +197,12 @@ const Sources: React.FunctionComponent<ISourceProps> = () => {
                         onClick={() => navigateTo("/destination")}
                       >
                         Go to destination
+                      </Button>
+                      <Button
+                        variant="link"
+                        onClick={() => navigateTo("/transform")}
+                      >
+                        Add transformations
                       </Button>
                       <Button
                         variant="link"
