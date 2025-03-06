@@ -15,6 +15,7 @@ import { useQuery } from "react-query";
 import SourceDestinationSelectionList from "../SourceDestinationSelectionList";
 import { CatalogGrid } from "@components/CatalogGrid";
 import { CreateSource } from "@sourcePage/CreateSource";
+import sourceCatalog from "../../__mocks__/data/SourceCatalog.json";
 
 type PipelineSourceModelProps = {
   onSourceSelection: (source: Source) => void;
@@ -134,6 +135,8 @@ const PipelineSourceModel: React.FC<PipelineSourceModelProps> = ({
           onCardSelect={selectSource}
           catalogType="source"
           isAddButtonVisible={false}
+          displayType={"grid"}
+          searchResult={sourceCatalog}
         />
       ) : (
         <CreateSource
