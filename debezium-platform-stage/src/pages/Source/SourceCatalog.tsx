@@ -15,6 +15,11 @@ import {
 import { ListIcon, ThIcon } from "@patternfly/react-icons";
 import { useNavigate } from "react-router-dom";
 import { CatalogGrid } from "@components/CatalogGrid";
+import { useCallback, useState } from "react";
+import { debounce } from "lodash";
+import _ from "lodash";
+import sourceCatalog from "../../__mocks__/data/SourceCatalog.json";
+import { Catalog } from "src/apis/types";
 
 export interface ISinkProps {
   sampleProp?: string;
@@ -23,7 +28,14 @@ export interface ISinkProps {
 const SourceCatalog: React.FunctionComponent<ISinkProps> = () => {
   const navigate = useNavigate();
 
-  const [isSelected, setIsSelected] = React.useState("toggle-group-icons-1");
+  const [isSelected, setIsSelected] = React.useState<"grid" | "list">("grid");
+
+  const [searchResult, setSearchResult] = useState<Catalog[]>(sourceCatalog);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const onClear = () => {
+    onSearch?.("");
+  };
 
   const handleItemClick = (
     event:
@@ -32,8 +44,26 @@ const SourceCatalog: React.FunctionComponent<ISinkProps> = () => {
       | React.KeyboardEvent<Element>
   ) => {
     const id = event.currentTarget.id;
-    setIsSelected(id);
+    setIsSelected(id.split("-")[2]);
   };
+
+  const debouncedSearch = useCallback(
+    debounce((searchQuery: string) => {
+      const filteredSource = _.filter(sourceCatalog, function (o) {
+        return o.name.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+      setSearchResult(filteredSource);
+    }, 700),
+    []
+  );
+
+  const onSearch = useCallback(
+    (value: string) => {
+      setSearchQuery(value);
+      debouncedSearch(value);
+    },
+    [debouncedSearch]
+  );
 
   const onSourceSelection = (sourceId: string) => {
     navigate(`/source/create_source/${sourceId}`);
@@ -57,23 +87,29 @@ const SourceCatalog: React.FunctionComponent<ISinkProps> = () => {
         >
           <ToolbarContent>
             <ToolbarItem>
-              <SearchInput aria-label="Items example search input" />
+              <SearchInput
+                aria-label="Items  search input"
+                placeholder="Search by name"
+                value={searchQuery}
+                onChange={(_event, value) => onSearch(value)}
+                onClear={onClear}
+              />
             </ToolbarItem>
             <ToolbarItem>
-              <ToggleGroup aria-label="Icon variant toggle group">
+              <ToggleGroup aria-label="Display variant toggle group">
                 <ToggleGroupItem
                   icon={<ThIcon />}
-                  aria-label="copy"
-                  buttonId="toggle-group-icons-1"
-                  isSelected={isSelected === "toggle-group-icons-1"}
+                  aria-label="Grid view"
+                  buttonId="toggle-group-grid"
+                  isSelected={isSelected === "grid"}
                   onChange={handleItemClick}
                 />
 
                 <ToggleGroupItem
                   icon={<ListIcon />}
-                  aria-label="share square"
-                  buttonId="toggle-group-icons-3"
-                  isSelected={isSelected === "toggle-group-icons-3"}
+                  aria-label="List view"
+                  buttonId="toggle-group-list"
+                  isSelected={isSelected === "list"}
                   onChange={handleItemClick}
                 />
               </ToggleGroup>
@@ -81,7 +117,9 @@ const SourceCatalog: React.FunctionComponent<ISinkProps> = () => {
             {/* <ToolbarItem variant="separator" /> */}
             <ToolbarGroup align={{ default: "alignEnd" }}>
               <ToolbarItem>
-                <Content component={ContentVariants.small}>12 Items</Content>
+                <Content component={ContentVariants.small}>
+                  {searchResult.length} Items
+                </Content>
               </ToolbarItem>
             </ToolbarGroup>
           </ToolbarContent>
@@ -91,7 +129,9 @@ const SourceCatalog: React.FunctionComponent<ISinkProps> = () => {
       <CatalogGrid
         onCardSelect={onSourceSelection}
         catalogType="source"
-        isAddButtonVisible={true}
+        displayType={isSelected}
+        isAddButtonVisible={searchQuery.length === 0}
+        searchResult={searchResult}
       />
     </>
   );

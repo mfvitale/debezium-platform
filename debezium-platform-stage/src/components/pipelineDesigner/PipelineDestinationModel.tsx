@@ -15,6 +15,7 @@ import { API_URL } from "../../utils/constants";
 import SourceDestinationSelectionList from "../SourceDestinationSelectionList";
 import { CatalogGrid } from "@components/CatalogGrid";
 import { CreateDestination } from "@destinationPage/CreateDestination";
+import destinationCatalog from "../../__mocks__/data/DestinationCatalog.json";
 
 type PipelineDestinationModelProps = {
   onDestinationSelection: (destination: Destination) => void;
@@ -135,6 +136,8 @@ const PipelineDestinationModel: React.FC<PipelineDestinationModelProps> = ({
           onCardSelect={selectDestination}
           catalogType="destination"
           isAddButtonVisible={false}
+          displayType={"grid"}
+          searchResult={destinationCatalog}
         />
       ) : (
         <CreateDestination
