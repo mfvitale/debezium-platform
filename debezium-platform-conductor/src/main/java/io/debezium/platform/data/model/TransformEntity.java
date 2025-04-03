@@ -25,12 +25,7 @@ import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import lombok.Getter;
-import lombok.Setter;
-
 @Entity(name = "transform")
-@Getter
-@Setter
 public class TransformEntity {
     @Id
     @GeneratedValue
@@ -59,9 +54,71 @@ public class TransformEntity {
     })
     private Predicate predicate;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
+    }
+
+    public Set<VaultEntity> getVaults() {
+        return vaults;
+    }
+
+    public void setVaults(Set<VaultEntity> vaults) {
+        this.vaults = vaults;
+    }
+
+    public Map<String, Object> getConfig() {
+        return config;
+    }
+
+    public void setConfig(Map<String, Object> config) {
+        this.config = config;
+    }
+
+    public Predicate getPredicate() {
+        return predicate;
+    }
+
+    public void setPredicate(Predicate predicate) {
+        this.predicate = predicate;
+    }
+
     @Embeddable
-    @Getter
-    @Setter
     public static class Predicate {
 
         public Predicate() {
@@ -73,5 +130,29 @@ public class TransformEntity {
         private Map<String, Object> config;
 
         private boolean negate;
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public Map<String, Object> getConfig() {
+            return config;
+        }
+
+        public void setConfig(Map<String, Object> config) {
+            this.config = config;
+        }
+
+        public boolean isNegate() {
+            return negate;
+        }
+
+        public void setNegate(boolean negate) {
+            this.negate = negate;
+        }
     }
 }

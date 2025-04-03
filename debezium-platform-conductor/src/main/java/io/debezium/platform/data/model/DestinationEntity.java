@@ -21,12 +21,7 @@ import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import lombok.Getter;
-import lombok.Setter;
-
 @Entity(name = "destination")
-@Getter
-@Setter
 public class DestinationEntity {
     @Id
     @GeneratedValue
@@ -46,4 +41,60 @@ public class DestinationEntity {
     private Set<VaultEntity> vaults = new HashSet<>();
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> config;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
+    }
+
+    public Set<VaultEntity> getVaults() {
+        return vaults;
+    }
+
+    public void setVaults(Set<VaultEntity> vaults) {
+        this.vaults = vaults;
+    }
+
+    public Map<String, Object> getConfig() {
+        return config;
+    }
+
+    public void setConfig(Map<String, Object> config) {
+        this.config = config;
+    }
 }

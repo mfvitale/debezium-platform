@@ -11,11 +11,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import io.debezium.outbox.quarkus.ExportedEvent;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
 public abstract class AbstractEvent
         implements ExportedEvent<String, JsonNode> {
 
@@ -36,5 +31,30 @@ public abstract class AbstractEvent
         this.type = type.name();
         this.payload = payload;
         this.timestamp = timestamp;
+    }
+
+    @Override
+    public String getAggregateType() {
+        return aggregateType;
+    }
+
+    @Override
+    public String getAggregateId() {
+        return aggregateId;
+    }
+
+    @Override
+    public String getType() {
+        return type;
+    }
+
+    @Override
+    public JsonNode getPayload() {
+        return payload;
+    }
+
+    @Override
+    public Instant getTimestamp() {
+        return timestamp;
     }
 }

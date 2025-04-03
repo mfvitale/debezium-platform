@@ -22,7 +22,6 @@
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.2.5</surefire-plugin.version>
         <version.assertj>3.24.2</version.assertj>
-        <version.lombok>1.18.32</version.lombok>
         <version.mapstruct>1.5.5.Final</version.mapstruct>
         <version.debezium>${project.version}</version.debezium>
 
@@ -197,12 +196,6 @@
             <groupId>com.blazebit</groupId>
             <artifactId>blaze-persistence-integration-jaxrs-jackson-jakarta</artifactId>
             <version>1.6.11</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${version.lombok}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>

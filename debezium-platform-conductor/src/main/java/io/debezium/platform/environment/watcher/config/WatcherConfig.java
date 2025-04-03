@@ -7,12 +7,7 @@ package io.debezium.platform.environment.watcher.config;
 
 import jakarta.enterprise.context.Dependent;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-
 @Dependent
-@Accessors(fluent = true)
-@Getter
 public final class WatcherConfig {
 
     private final WatcherConfigGroup watcher;
@@ -44,5 +39,17 @@ public final class WatcherConfig {
         var port = url.substring(portStart, portEnd);
 
         return new ConnectionConfig(username, password, database, host, Integer.parseInt(port));
+    }
+
+    public WatcherConfigGroup watcher() {
+        return watcher;
+    }
+
+    public OutboxConfigGroup outbox() {
+        return outbox;
+    }
+
+    public ConnectionConfig connection() {
+        return connection;
     }
 }
