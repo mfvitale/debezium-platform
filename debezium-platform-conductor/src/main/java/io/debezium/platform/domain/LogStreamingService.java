@@ -19,8 +19,6 @@ import org.jboss.logging.Logger;
 import io.debezium.platform.environment.logs.LogReader;
 import io.quarkus.virtual.threads.VirtualThreads;
 
-import lombok.Getter;
-
 @ApplicationScoped
 public class LogStreamingService {
 
@@ -32,7 +30,6 @@ public class LogStreamingService {
     public static class LogStreamingTask implements Runnable, Closeable {
         private final Logger logger;
 
-        @Getter
         private final String name;
         private final AtomicBoolean running;
         private final Supplier<LogReader> supplier;
@@ -44,6 +41,10 @@ public class LogStreamingService {
             this.consumer = consumer;
             this.logger = logger;
             this.running = new AtomicBoolean(false);
+        }
+
+        public String getName() {
+            return name;
         }
 
         public boolean isRunning() {

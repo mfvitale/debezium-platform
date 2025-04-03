@@ -17,12 +17,7 @@ import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import lombok.Getter;
-import lombok.Setter;
-
 @Entity(name = "vault")
-@Getter
-@Setter
 public class VaultEntity {
     @Id
     @GeneratedValue
@@ -34,4 +29,44 @@ public class VaultEntity {
     private boolean plaintext = false;
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, String> items = new HashMap<>();
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public boolean isPlaintext() {
+        return plaintext;
+    }
+
+    public void setPlaintext(boolean plaintext) {
+        this.plaintext = plaintext;
+    }
+
+    public Map<String, String> getItems() {
+        return items;
+    }
+
+    public void setItems(Map<String, String> items) {
+        this.items = items;
+    }
 }
