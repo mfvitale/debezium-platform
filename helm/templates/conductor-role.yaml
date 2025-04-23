@@ -14,5 +14,5 @@ rules:
     resources: [ "deployments", "replicasets" ]
     verbs: [ "get", "list"]
   - apiGroups: [ "" ]
-    resources: [ "pods", "pods/log" ]
+    resources: [ "pods", "pods/log", "services" ]
     verbs: [ "get", "list" ]

@@ -34,10 +34,12 @@ import io.debezium.operator.api.model.source.SchemaHistoryBuilder;
 import io.debezium.operator.api.model.source.SourceBuilder;
 import io.debezium.operator.api.model.source.storage.CustomStoreBuilder;
 import io.debezium.platform.config.PipelineConfigGroup;
+import io.debezium.platform.data.dto.SignalRequest;
 import io.debezium.platform.domain.views.Transform;
 import io.debezium.platform.domain.views.flat.PipelineFlat;
 import io.debezium.platform.environment.PipelineController;
 import io.debezium.platform.environment.logs.LogReader;
+import io.debezium.platform.environment.operator.actions.DebeziumServerProxy;
 import io.debezium.platform.environment.operator.configuration.TableNameResolver;
 import io.debezium.platform.environment.operator.logs.KubernetesLogReader;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -58,13 +60,16 @@ public class OperatorPipelineController implements PipelineController {
     private final KubernetesClient k8s;
     private final PipelineConfigGroup pipelineConfigGroup;
     private final TableNameResolver tableNameResolver;
+    private final DebeziumServerProxy debeziumServerProxy;
 
     public OperatorPipelineController(KubernetesClient k8s,
                                       PipelineConfigGroup pipelineConfigGroup,
-                                      TableNameResolver tableNameResolver) {
+                                      TableNameResolver tableNameResolver,
+                                      DebeziumServerProxy debeziumServerProxy) {
         this.k8s = k8s;
         this.pipelineConfigGroup = pipelineConfigGroup;
         this.tableNameResolver = tableNameResolver;
+        this.debeziumServerProxy = debeziumServerProxy;
     }
 
     @Override
@@ -240,6 +245,15 @@ public class OperatorPipelineController implements PipelineController {
     @Override
     public LogReader logReader(Long id) {
         return new KubernetesLogReader(() -> findDeploymentLoggable(id));
+    }
+
+    @Override
+    public void sendSignal(Long id, SignalRequest signalRequest) {
+
+        findById(id).ifPresent(ds -> {
+            debeziumServerProxy.sendSignal(signalRequest, ds);
+        });
+
     }
 
     private void stop(Long id, boolean stop) {
