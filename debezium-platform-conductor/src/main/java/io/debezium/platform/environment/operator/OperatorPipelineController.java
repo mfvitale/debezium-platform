@@ -23,6 +23,7 @@ import io.debezium.operator.api.model.QuarkusBuilder;
 import io.debezium.operator.api.model.SinkBuilder;
 import io.debezium.operator.api.model.Transformation;
 import io.debezium.operator.api.model.TransformationBuilder;
+import io.debezium.operator.api.model.runtime.RuntimeApiBuilder;
 import io.debezium.operator.api.model.runtime.RuntimeBuilder;
 import io.debezium.operator.api.model.runtime.metrics.JmxExporterBuilder;
 import io.debezium.operator.api.model.runtime.metrics.MetricsBuilder;
@@ -51,6 +52,8 @@ public class OperatorPipelineController implements PipelineController {
     private static final List<String> RESOLVABLE_CONFIGS = List.of("jdbc.schema.history.table.name", "jdbc.offset.table.name");
     private static final String PREDICATE_PREFIX = "p";
     private static final String PREDICATE_ALIAS_FORMAT = "%s%s";
+    private static final String SIGNAL_ENABLED_CHANNELS_CONFIG = "signal.enabled.channels";
+    private static final String DEFAULT_SIGNAL_CHANNELS = "source,in-process";
 
     private final KubernetesClient k8s;
     private final PipelineConfigGroup pipelineConfigGroup;
@@ -66,6 +69,7 @@ public class OperatorPipelineController implements PipelineController {
 
     @Override
     public void deploy(PipelineFlat pipeline) {
+
         // Create DS quarkus configuration
         var quarkusConfig = new ConfigProperties();
         quarkusConfig.setAllProps(Map.of(
@@ -76,6 +80,7 @@ public class OperatorPipelineController implements PipelineController {
                 .build();
 
         var dsRuntime = new RuntimeBuilder()
+                .withApi(new RuntimeApiBuilder().withEnabled().build())
                 .withMetrics(new MetricsBuilder()
                         .withJmxExporter(new JmxExporterBuilder()
                                 .withEnabled()
@@ -87,6 +92,7 @@ public class OperatorPipelineController implements PipelineController {
         var source = pipeline.getSource();
         var sourceConfig = new ConfigProperties();
         sourceConfig.setAllProps(source.getConfig());
+        sourceConfig.setProps(SIGNAL_ENABLED_CHANNELS_CONFIG, DEFAULT_SIGNAL_CHANNELS);
 
         var dsSource = new SourceBuilder()
                 .withSourceClass(source.getType())
