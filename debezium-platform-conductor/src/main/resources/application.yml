@@ -38,6 +38,9 @@ pipeline:
                 name: "@{pipeline_name}_schema_history"
 
 quarkus:
+  rest-client:
+    debezium-server-api:
+      url: http://localhost:8080
   http:
     cors:
         ~: true
