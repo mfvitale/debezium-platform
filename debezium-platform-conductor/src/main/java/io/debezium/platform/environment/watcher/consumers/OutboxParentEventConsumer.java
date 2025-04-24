@@ -48,7 +48,7 @@ public final class OutboxParentEventConsumer implements Consumer<ChangeEvent<Sou
         var eventType = value.getString(outbox.typeColumn());
         var payload = value.getString("payload");
 
-        logger.debugf("Consumed %s event for % (#%d)", eventType, aggregateType, aggregateId);
+        logger.debugf("Consumed %s event for %s (#%s) with payload %s", eventType, aggregateType, aggregateId, payload);
 
         eventConsumers.forEach(consumer -> consumer.consume(
                 aggregateType, eventType, Long.valueOf(aggregateId), payload));
