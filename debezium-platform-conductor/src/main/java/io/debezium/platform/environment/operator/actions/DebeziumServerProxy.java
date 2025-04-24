@@ -1,3 +1,8 @@
+/*
+ * Copyright Debezium Authors.
+ *
+ * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
+ */
 package io.debezium.platform.environment.operator.actions;
 
 import java.util.Map;
@@ -40,6 +45,7 @@ public class DebeziumServerProxy {
 
         var baseUrl = getDSApiBaseUrl(ds);
         if (baseUrl.isEmpty()) {
+            // TODO should we return a status response at upper level?
             return;
         }
 
