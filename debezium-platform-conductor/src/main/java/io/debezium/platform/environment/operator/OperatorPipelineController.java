@@ -250,10 +250,9 @@ public class OperatorPipelineController implements PipelineController {
     @Override
     public void sendSignal(Long id, SignalRequest signalRequest) {
 
-        findById(id).ifPresent(ds -> {
-            debeziumServerProxy.sendSignal(signalRequest, ds);
-        });
+        findById(id).ifPresent(ds -> debeziumServerProxy.sendSignal(signalRequest, ds));
 
+        // TODO improve response in case of pipeline not found
     }
 
     private void stop(Long id, boolean stop) {
