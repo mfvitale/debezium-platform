@@ -8,8 +8,12 @@ package io.debezium.platform.data.dto;
 import java.util.Map;
 import java.util.Objects;
 
-public record SignalRequest(String id, String type, String data, Map<String, Object> additionalData) {
-    // TODO add validation
+import jakarta.validation.constraints.NotEmpty;
+
+public record SignalRequest(@NotEmpty String id,
+                            @NotEmpty String type,
+                            @NotEmpty String data,
+                            Map<String, Object> additionalData) {
 
     @Override
     public boolean equals(Object o) {
