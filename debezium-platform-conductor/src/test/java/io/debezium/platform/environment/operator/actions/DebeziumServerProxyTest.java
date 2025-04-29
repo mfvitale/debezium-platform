@@ -5,18 +5,22 @@
  */
 package io.debezium.platform.environment.operator.actions;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.util.Map;
+
+import jakarta.ws.rs.core.Response;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+import io.debezium.DebeziumException;
 import io.debezium.operator.api.model.DebeziumServerBuilder;
 import io.debezium.platform.data.dto.SignalRequest;
 import io.debezium.platform.environment.actions.client.DebeziumServerClient;
@@ -50,8 +54,9 @@ class DebeziumServerProxyTest {
     void sendSignal() {
 
         createServices();
-
         var signal = new SignalRequest("1", "execute-snapshot", "{ \"data-collections\": [ \"inventory.products\"],\"type\": \"INCREMENTAL\"}", Map.of());
+        when(debeziumServerClient.sendSignal("http://test-pipeline-api:8080", signal)).thenReturn(Response.accepted().build());
+
         var dsSpec = new DebeziumServerBuilder().withMetadata(new ObjectMetaBuilder()
                 .withNamespace("my-namespace")
                 .withName("test-pipeline")
@@ -74,9 +79,30 @@ class DebeziumServerProxyTest {
                 .build())
                 .build();
 
-        proxy.sendSignal(signal, dsSpec);
+        assertThatExceptionOfType(DebeziumException.class)
+                .isThrownBy(() -> proxy.sendSignal(signal, dsSpec))
+                .withMessage("Unable to find pipeline instance to send the signal");
+    }
 
-        verify(debeziumServerClient, times(0)).sendSignal(any(), any());
+    @Test
+    @DisplayName("An error is throw when error occurs during api call")
+    void errorOnApiCall() {
+
+        createServices();
+        var signal = new SignalRequest("1", "execute-snapshot", "{ \"data-collections\": [ \"inventory.products\"],\"type\": \"INCREMENTAL\"}", Map.of());
+        when(debeziumServerClient.sendSignal("http://test-pipeline-api:8080", signal)).thenReturn(Response.serverError().build());
+
+        var dsSpec = new DebeziumServerBuilder().withMetadata(new ObjectMetaBuilder()
+                .withNamespace("my-namespace")
+                .withName("test-pipeline")
+                .build())
+                .build();
+
+        assertThatExceptionOfType(DebeziumException.class)
+                .isThrownBy(() -> proxy.sendSignal(signal, dsSpec))
+                .withCauseInstanceOf(DebeziumException.class)
+                .havingCause()
+                .withMessage("Unable to to send signal to http://test-pipeline-api:8080 for Internal Server Error");
     }
 
     private void createServices() {
