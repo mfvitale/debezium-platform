@@ -123,7 +123,8 @@ public class PipelineResource {
     }
 
     @Operation(summary = "Send signal to pipeline with given id")
-    @APIResponse(responseCode = "202", content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = String.class, required = true)))
+    @APIResponse(responseCode = "202", description = "Signal correctly sent to the pipeline")
+    @APIResponse(responseCode = "404", description = "Pipeline not found")
     @POST
     @Path("/{id}/signals")
     @Produces(APPLICATION_JSON)
