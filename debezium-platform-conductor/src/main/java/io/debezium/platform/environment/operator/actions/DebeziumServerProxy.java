@@ -48,15 +48,17 @@ public class DebeziumServerProxy {
             throw new DebeziumException("Unable to find pipeline instance to send the signal");
         }
 
-        try (Response response = dsClient.sendSignal(baseUrl.get(), signalRequest)) {
+        var dsApiBaseUrl = baseUrl.get();
+        try (Response response = dsClient.sendSignal(dsApiBaseUrl, signalRequest)) {
 
-            LOGGER.debug("Call to {} returned with {}", baseUrl, response);
+            LOGGER.debug("Call to {} returned with {}", baseUrl, response.getStatusInfo().getReasonPhrase());
             if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-                LOGGER.error("Sending signal to {} failed with {}", baseUrl.get(), response);
+                LOGGER.error("Sending signal to {} failed with {}", dsApiBaseUrl, response.getStatusInfo().getReasonPhrase());
+                throw new DebeziumException(String.format("Unable to to send signal to %s for %s", dsApiBaseUrl, response.getStatusInfo().getReasonPhrase()));
             }
         }
         catch (RuntimeException e) {
-            throw new DebeziumException(String.format("Error sending signal to %s ", baseUrl), e);
+            throw new DebeziumException(String.format("Error sending signal to %s ", dsApiBaseUrl), e);
         }
     }
 
