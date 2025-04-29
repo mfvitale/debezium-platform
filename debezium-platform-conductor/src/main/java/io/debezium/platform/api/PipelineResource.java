@@ -134,10 +134,10 @@ public class PipelineResource {
 
         return controller
                 .map(pipelineController -> {
-                    pipelineController.sendSignal(id, signalRequest);
 
+                    pipelineController.sendSignal(id, signalRequest);
                     return Response.accepted().build();
                 })
-                .orElseGet(() -> Response.status(Response.Status.NOT_ACCEPTABLE).build());
+                .orElseGet(() -> Response.status(Response.Status.NOT_FOUND).build());
     }
 }

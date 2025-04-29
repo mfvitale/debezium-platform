@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.Dependent;
 
+import io.debezium.DebeziumException;
 import io.debezium.operator.api.model.ConfigProperties;
 import io.debezium.operator.api.model.DebeziumServer;
 import io.debezium.operator.api.model.DebeziumServerBuilder;
@@ -250,9 +251,11 @@ public class OperatorPipelineController implements PipelineController {
     @Override
     public void sendSignal(Long id, SignalRequest signalRequest) {
 
-        findById(id).ifPresent(ds -> debeziumServerProxy.sendSignal(signalRequest, ds));
+        DebeziumServer ds = findById(id)
+                .orElseThrow(() -> new DebeziumException(String.format("Pipeline with id %s not found", id)));
 
-        // TODO improve response in case of pipeline not found
+        debeziumServerProxy.sendSignal(signalRequest, ds);
+
     }
 
     private void stop(Long id, boolean stop) {

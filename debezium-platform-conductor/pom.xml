@@ -49,6 +49,7 @@
         <dist.app.source.dir>${dist.root.dir}/target/quarkus-app</dist.app.source.dir>
 
 
+        <mockwebserver.version>4.8.1</mockwebserver.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -140,6 +141,12 @@
                 <groupId>io.rest-assured</groupId>
                 <artifactId>json-schema-validator</artifactId>
                 <version>${json-schema-validator.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>mockwebserver</artifactId>
+                <version>${mockwebserver.version}</version>
             </dependency>
 
         </dependencies>
@@ -379,7 +386,6 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>mockwebserver</artifactId>
-            <version>4.8.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
