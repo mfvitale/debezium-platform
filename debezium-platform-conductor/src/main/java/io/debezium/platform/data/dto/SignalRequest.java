@@ -11,9 +11,9 @@ import java.util.Objects;
 import jakarta.validation.constraints.NotEmpty;
 
 public record SignalRequest(@NotEmpty String id,
-                            @NotEmpty String type,
-                            @NotEmpty String data,
-                            Map<String, Object> additionalData) {
+        @NotEmpty String type,
+        @NotEmpty String data,
+        Map<String, Object> additionalData) {
 
     @Override
     public boolean equals(Object o) {

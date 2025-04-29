@@ -41,6 +41,8 @@ quarkus:
   rest-client:
     debezium-server-api:
       url: http://localhost:8080
+      # Avoid throwing an exception when HTTP status code is higher than 400
+      disable-default-mapper: true
   http:
     cors:
         ~: true

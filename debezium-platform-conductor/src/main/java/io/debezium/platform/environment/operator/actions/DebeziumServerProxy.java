@@ -45,19 +45,17 @@ public class DebeziumServerProxy {
 
         var baseUrl = getDSApiBaseUrl(ds);
         if (baseUrl.isEmpty()) {
-            // TODO should we return a status response at upper level?
-            return;
+            throw new DebeziumException("Unable to find pipeline instance to send the signal");
         }
 
-        try {
+        try (Response response = dsClient.sendSignal(baseUrl.get(), signalRequest)) {
 
-            try (Response response = dsClient.sendSignal(baseUrl.get(), signalRequest)) {
-
-                LOGGER.debug("Call to {} returned with {}", baseUrl, response);
-                // TODO should we return a status response at upper level?
+            LOGGER.debug("Call to {} returned with {}", baseUrl, response);
+            if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+                LOGGER.error("Sending signal to {} failed with {}", baseUrl.get(), response);
             }
         }
-        catch (Exception e) {
+        catch (RuntimeException e) {
             throw new DebeziumException(String.format("Error sending signal to %s ", baseUrl), e);
         }
     }
@@ -75,14 +73,14 @@ public class DebeziumServerProxy {
                 .list();
 
         if (apiServices.getItems().isEmpty()) {
-            LOGGER.debug("No service found in the ns {} with labels {}", namespace, requiredLabels);
+            LOGGER.error("No service found in the ns {} with labels {}", namespace, requiredLabels);
             return Optional.empty();
         }
 
         Service apiService = apiServices.getItems().getFirst();
 
         if (apiService.getSpec().getPorts().isEmpty()) {
-            LOGGER.debug("Found service {} in the ns {} without any ports", apiService.getMetadata().getName(), namespace);
+            LOGGER.error("Found service {} in the ns {} without any ports", apiService.getMetadata().getName(), namespace);
             return Optional.empty();
         }
 
