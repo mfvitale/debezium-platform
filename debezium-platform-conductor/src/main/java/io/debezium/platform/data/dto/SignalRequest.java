@@ -6,7 +6,6 @@
 package io.debezium.platform.data.dto;
 
 import java.util.Map;
-import java.util.Objects;
 
 import jakarta.validation.constraints.NotEmpty;
 
@@ -14,6 +13,5 @@ public record SignalRequest(@NotEmpty String id,
         @NotEmpty String type,
         @NotEmpty String data,
         Map<String, Object> additionalData) {
-
 
 }

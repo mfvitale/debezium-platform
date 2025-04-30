@@ -13,7 +13,7 @@ import jakarta.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-import io.debezium.platform.data.dto.SignalRequest;
+import io.debezium.platform.domain.Signal;
 import io.quarkus.rest.client.reactive.Url;
 
 @Path("/api")
@@ -23,5 +23,5 @@ public interface DebeziumServerClient {
     @POST
     @Path("/signals")
     @Consumes(MediaType.APPLICATION_JSON)
-    Response sendSignal(@Url String url, SignalRequest request);
+    Response sendSignal(@Url String url, Signal body);
 }

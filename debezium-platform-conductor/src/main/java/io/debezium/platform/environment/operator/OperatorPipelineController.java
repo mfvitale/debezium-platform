@@ -35,7 +35,7 @@ import io.debezium.operator.api.model.source.SchemaHistoryBuilder;
 import io.debezium.operator.api.model.source.SourceBuilder;
 import io.debezium.operator.api.model.source.storage.CustomStoreBuilder;
 import io.debezium.platform.config.PipelineConfigGroup;
-import io.debezium.platform.data.dto.SignalRequest;
+import io.debezium.platform.domain.Signal;
 import io.debezium.platform.domain.views.Transform;
 import io.debezium.platform.domain.views.flat.PipelineFlat;
 import io.debezium.platform.environment.PipelineController;
@@ -249,13 +249,12 @@ public class OperatorPipelineController implements PipelineController {
     }
 
     @Override
-    public void sendSignal(Long id, SignalRequest signalRequest) {
-
-        DebeziumServer ds = findById(id)
-                .orElseThrow(() -> new DebeziumException(String.format("Pipeline with id %s not found", id)));
-
-        debeziumServerProxy.sendSignal(signalRequest, ds);
-
+    public void sendSignal(Long pipelineId, Signal signal) {
+        findById(pipelineId).ifPresentOrElse(
+                debeziumServer -> debeziumServerProxy.sendSignal(signal, debeziumServer),
+                () -> {
+                    throw new DebeziumException(String.format("Pipeline with id %s not found", pipelineId));
+                });
     }
 
     private void stop(Long id, boolean stop) {

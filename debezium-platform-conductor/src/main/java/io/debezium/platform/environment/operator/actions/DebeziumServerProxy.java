@@ -5,9 +5,6 @@
  */
 package io.debezium.platform.environment.operator.actions;
 
-import java.util.Map;
-import java.util.Optional;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.Response;
 
@@ -17,41 +14,40 @@ import org.slf4j.LoggerFactory;
 
 import io.debezium.DebeziumException;
 import io.debezium.operator.api.model.DebeziumServer;
-import io.debezium.platform.data.dto.SignalRequest;
+import io.debezium.platform.domain.Signal;
 import io.debezium.platform.environment.actions.client.DebeziumServerClient;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceList;
-import io.fabric8.kubernetes.client.KubernetesClient;
 
 @ApplicationScoped
 public class DebeziumServerProxy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DebeziumServerProxy.class);
 
-    private static final String DEBEZIUM_IO_CLASSIFIER_LABEL = "debezium.io/classifier";
-    private static final String DEBEZIUM_IO_INSTANCE_LABEL = "debezium.io/instance";
-    private static final String API_CLASSIFIER = "api";
-    private static final String SERVICE_URL_FORMAT = "http://%s:%s";
-
-    private final KubernetesClient k8s;
     private final DebeziumServerClient dsClient;
+    private final KubernetesResourceLocator kubernetesResourceLocator;
 
-    public DebeziumServerProxy(KubernetesClient k8s, @RestClient DebeziumServerClient dsClient) {
-        this.k8s = k8s;
+    public DebeziumServerProxy(@RestClient DebeziumServerClient dsClient, KubernetesResourceLocator kubernetesResourceLocator) {
         this.dsClient = dsClient;
+        this.kubernetesResourceLocator = kubernetesResourceLocator;
     }
 
-    public void sendSignal(SignalRequest signalRequest, DebeziumServer ds) {
+    public void sendSignal(Signal signal, DebeziumServer debeziumServer) {
 
-        var baseUrl = getDSApiBaseUrl(ds);
-        if (baseUrl.isEmpty()) {
-            throw new DebeziumException("Unable to find pipeline instance to send the signal");
-        }
+        DebeziumServerAttributes debeziumServerAttributes = new DebeziumServerAttributes(
+                debeziumServer.getMetadata().getNamespace(),
+                debeziumServer.getMetadata().getName());
 
-        var dsApiBaseUrl = baseUrl.get();
-        try (Response response = dsClient.sendSignal(dsApiBaseUrl, signalRequest)) {
+        kubernetesResourceLocator.getApiBaseUrl(debeziumServerAttributes)
+                .ifPresentOrElse(baseUrl -> send(baseUrl, signal),
+                        () -> {
+                            throw new DebeziumException("Unable to find pipeline instance to send the signal");
+                        });
+    }
 
-            LOGGER.debug("Call to {} returned with {}", baseUrl, response.getStatusInfo().getReasonPhrase());
+    private void send(String dsApiBaseUrl, Signal signal) {
+
+        try (Response response = dsClient.sendSignal(dsApiBaseUrl, signal)) {
+
+            LOGGER.debug("Call to {} returned with {}", dsApiBaseUrl, response.getStatusInfo().getReasonPhrase());
             if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
                 LOGGER.error("Sending signal to {} failed with {}", dsApiBaseUrl, response.getStatusInfo().getReasonPhrase());
                 throw new DebeziumException(String.format("Unable to to send signal to %s for %s", dsApiBaseUrl, response.getStatusInfo().getReasonPhrase()));
@@ -62,32 +58,4 @@ public class DebeziumServerProxy {
         }
     }
 
-    private Optional<String> getDSApiBaseUrl(DebeziumServer ds) {
-
-        var namespace = ds.getMetadata().getNamespace();
-        var requiredLabels = Map.of(
-                DEBEZIUM_IO_CLASSIFIER_LABEL, API_CLASSIFIER,
-                DEBEZIUM_IO_INSTANCE_LABEL, ds.getMetadata().getName());
-
-        ServiceList apiServices = k8s.services()
-                .inNamespace(namespace)
-                .withLabels(requiredLabels)
-                .list();
-
-        if (apiServices.getItems().isEmpty()) {
-            LOGGER.error("No service found in the ns {} with labels {}", namespace, requiredLabels);
-            return Optional.empty();
-        }
-
-        Service apiService = apiServices.getItems().getFirst();
-
-        if (apiService.getSpec().getPorts().isEmpty()) {
-            LOGGER.error("Found service {} in the ns {} without any ports", apiService.getMetadata().getName(), namespace);
-            return Optional.empty();
-        }
-
-        var port = apiService.getSpec().getPorts().getFirst().getPort();
-
-        return Optional.of(String.format(SERVICE_URL_FORMAT, apiService.getMetadata().getName(), port));
-    }
 }
