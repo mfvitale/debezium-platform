@@ -54,7 +54,9 @@ class DebeziumServerProxyTest {
     void sendSignal() {
 
         createServices();
-        var signal = new SignalRequest("1", "execute-snapshot", "{ \"data-collections\": [ \"inventory.products\"],\"type\": \"INCREMENTAL\"}", Map.of());
+        var signal = new SignalRequest("1", "execute-snapshot", """
+                {"data-collections": [ "inventory.products"],"type": "INCREMENTAL"}""",
+                Map.of());
         when(debeziumServerClient.sendSignal("http://test-pipeline-api:8080", signal)).thenReturn(Response.accepted().build());
 
         var dsSpec = new DebeziumServerBuilder().withMetadata(new ObjectMetaBuilder()
@@ -72,7 +74,9 @@ class DebeziumServerProxyTest {
     @DisplayName("Signal is not sent when no pipeline associated service is found")
     void noService() {
 
-        var signal = new SignalRequest("1", "execute-snapshot", "{ \"data-collections\": [ \"inventory.products\"],\"type\": \"INCREMENTAL\"}", Map.of());
+        var signal = new SignalRequest("1", "execute-snapshot", """
+                { "data-collections": [ "inventory.products"],"type": "INCREMENTAL"}""",
+                Map.of());
         var dsSpec = new DebeziumServerBuilder().withMetadata(new ObjectMetaBuilder()
                 .withNamespace("my-namespace")
                 .withName("test-pipeline")
@@ -89,7 +93,8 @@ class DebeziumServerProxyTest {
     void errorOnApiCall() {
 
         createServices();
-        var signal = new SignalRequest("1", "execute-snapshot", "{ \"data-collections\": [ \"inventory.products\"],\"type\": \"INCREMENTAL\"}", Map.of());
+        var signal = new SignalRequest("1", "execute-snapshot", """
+                { "data-collections": [ "inventory.products"],"type": "INCREMENTAL"}""", Map.of());
         when(debeziumServerClient.sendSignal("http://test-pipeline-api:8080", signal)).thenReturn(Response.serverError().build());
 
         var dsSpec = new DebeziumServerBuilder().withMetadata(new ObjectMetaBuilder()
