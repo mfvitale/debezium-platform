@@ -15,18 +15,5 @@ public record SignalRequest(@NotEmpty String id,
         @NotEmpty String data,
         Map<String, Object> additionalData) {
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        SignalRequest that = (SignalRequest) o;
-        return Objects.equals(id, that.id) && Objects.equals(type, that.type) && Objects.equals(data, that.data) && Objects.equals(
-                additionalData, that.additionalData);
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, type, data, additionalData);
-    }
 }
