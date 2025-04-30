@@ -9,7 +9,6 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
 
 import java.net.URI;
-import java.util.Optional;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -38,10 +37,11 @@ import org.jboss.logging.Logger;
 import com.blazebit.persistence.integration.jaxrs.EntityViewId;
 
 import io.debezium.platform.data.dto.SignalRequest;
+import io.debezium.platform.data.dto.SignalResponse;
 import io.debezium.platform.domain.PipelineService;
+import io.debezium.platform.domain.Signal;
 import io.debezium.platform.domain.views.Pipeline;
 import io.debezium.platform.environment.EnvironmentController;
-import io.debezium.platform.environment.PipelineController;
 import io.debezium.platform.environment.logs.LogReader;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 
@@ -123,22 +123,20 @@ public class PipelineResource {
     }
 
     @Operation(summary = "Send signal to pipeline with given id")
-    @APIResponse(responseCode = "202", description = "Signal correctly sent to the pipeline")
+    @APIResponse(responseCode = "202", description = "Signal correctly sent to the pipeline", content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = SignalResponse.class, required = true)))
     @APIResponse(responseCode = "404", description = "Pipeline not found")
     @POST
     @Path("/{id}/signals")
     @Produces(APPLICATION_JSON)
     public Response sendSignal(@PathParam("id") Long id, @NotNull @Valid SignalRequest signalRequest) {
 
-        Optional<PipelineController> controller = pipelineService.environmentController(id)
-                .map(EnvironmentController::pipelines);
+        Signal signal = new Signal(signalRequest.id(),
+                signalRequest.type(),
+                signalRequest.data(),
+                signalRequest.additionalData());
 
-        return controller
-                .map(pipelineController -> {
-
-                    pipelineController.sendSignal(id, signalRequest);
-                    return Response.accepted().build();
-                })
+        return pipelineService.send(id, signal)
+                .map(signalId -> Response.accepted(SignalResponse.from(signalId)).build())
                 .orElseGet(() -> Response.status(Response.Status.NOT_FOUND).build());
     }
 }

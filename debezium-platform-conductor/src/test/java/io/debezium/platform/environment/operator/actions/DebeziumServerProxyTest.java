@@ -22,7 +22,7 @@ import org.mockito.Mock;
 
 import io.debezium.DebeziumException;
 import io.debezium.operator.api.model.DebeziumServerBuilder;
-import io.debezium.platform.data.dto.SignalRequest;
+import io.debezium.platform.domain.Signal;
 import io.debezium.platform.environment.actions.client.DebeziumServerClient;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -46,7 +46,7 @@ class DebeziumServerProxyTest {
 
         initMocks(this);
 
-        proxy = new DebeziumServerProxy(kubernetesClient, debeziumServerClient);
+        proxy = new DebeziumServerProxy(debeziumServerClient, new KubernetesResourceLocator(kubernetesClient));
     }
 
     @Test
@@ -54,9 +54,9 @@ class DebeziumServerProxyTest {
     void sendSignal() {
 
         createServices();
-        var signal = new SignalRequest("1", "execute-snapshot", """
-                {"data-collections": [ "inventory.products"],"type": "INCREMENTAL"}""",
-                Map.of());
+        var signal = new Signal("1", "execute-snapshot", """
+                {"data-collections": [ "inventory.products"],"type": "INCREMENTAL"}""", Map.of());
+
         when(debeziumServerClient.sendSignal("http://test-pipeline-api:8080", signal)).thenReturn(Response.accepted().build());
 
         var dsSpec = new DebeziumServerBuilder().withMetadata(new ObjectMetaBuilder()
@@ -74,9 +74,8 @@ class DebeziumServerProxyTest {
     @DisplayName("Signal is not sent when no pipeline associated service is found")
     void noService() {
 
-        var signal = new SignalRequest("1", "execute-snapshot", """
-                { "data-collections": [ "inventory.products"],"type": "INCREMENTAL"}""",
-                Map.of());
+        var signal = new Signal("1", "execute-snapshot", """
+                { "data-collections": [ "inventory.products"],"type": "INCREMENTAL"}""", Map.of());
         var dsSpec = new DebeziumServerBuilder().withMetadata(new ObjectMetaBuilder()
                 .withNamespace("my-namespace")
                 .withName("test-pipeline")
@@ -93,7 +92,7 @@ class DebeziumServerProxyTest {
     void errorOnApiCall() {
 
         createServices();
-        var signal = new SignalRequest("1", "execute-snapshot", """
+        var signal = new Signal("1", "execute-snapshot", """
                 { "data-collections": [ "inventory.products"],"type": "INCREMENTAL"}""", Map.of());
         when(debeziumServerClient.sendSignal("http://test-pipeline-api:8080", signal)).thenReturn(Response.serverError().build());
 

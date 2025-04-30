@@ -85,4 +85,14 @@ public class PipelineService extends AbstractService<PipelineEntity, Pipeline, P
                 .map(EnvironmentController::pipelines)
                 .map(pipelines -> logStreamer.stream(String.valueOf(id), () -> pipelines.logReader(id), consumer));
     }
+
+    public Optional<String> send(Long pipelineId, Signal signal) {
+        return environmentController(pipelineId)
+                .map(EnvironmentController::pipelines)
+                .map(pipelineController -> {
+                    pipelineController.sendSignal(pipelineId, signal);
+
+                    return signal.id();
+                });
+    }
 }

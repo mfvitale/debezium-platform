@@ -5,7 +5,7 @@
  */
 package io.debezium.platform.environment;
 
-import io.debezium.platform.data.dto.SignalRequest;
+import io.debezium.platform.domain.Signal;
 import io.debezium.platform.domain.views.flat.PipelineFlat;
 import io.debezium.platform.environment.logs.LogReader;
 
@@ -58,5 +58,5 @@ public interface PipelineController {
      */
     LogReader logReader(Long id);
 
-    void sendSignal(Long id, SignalRequest signalRequest);
+    void sendSignal(Long pipelineId, Signal signal);
 }
