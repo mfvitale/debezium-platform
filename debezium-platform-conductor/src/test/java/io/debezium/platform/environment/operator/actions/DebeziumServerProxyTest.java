@@ -46,7 +46,7 @@ class DebeziumServerProxyTest {
 
         initMocks(this);
 
-        proxy = new DebeziumServerProxy(debeziumServerClient, new KubernetesResourceLocator(kubernetesClient));
+        proxy = new DebeziumServerProxy(debeziumServerClient, new DebeziumKubernetesAdapter(kubernetesClient));
     }
 
     @Test
