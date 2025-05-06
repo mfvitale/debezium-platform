@@ -40,13 +40,11 @@ import io.debezium.platform.domain.views.Transform;
 import io.debezium.platform.domain.views.flat.PipelineFlat;
 import io.debezium.platform.environment.PipelineController;
 import io.debezium.platform.environment.logs.LogReader;
+import io.debezium.platform.environment.operator.actions.DebeziumKubernetesAdapter;
 import io.debezium.platform.environment.operator.actions.DebeziumServerProxy;
 import io.debezium.platform.environment.operator.configuration.TableNameResolver;
 import io.debezium.platform.environment.operator.logs.KubernetesLogReader;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.TailPrettyLoggable;
 
 @Dependent
 public class OperatorPipelineController implements PipelineController {
@@ -58,16 +56,16 @@ public class OperatorPipelineController implements PipelineController {
     private static final String SIGNAL_ENABLED_CHANNELS_CONFIG = "signal.enabled.channels";
     private static final String DEFAULT_SIGNAL_CHANNELS = "source,in-process";
 
-    private final KubernetesClient k8s;
+    private final DebeziumKubernetesAdapter kubernetesAdapter;
     private final PipelineConfigGroup pipelineConfigGroup;
     private final TableNameResolver tableNameResolver;
     private final DebeziumServerProxy debeziumServerProxy;
 
-    public OperatorPipelineController(KubernetesClient k8s,
+    public OperatorPipelineController(DebeziumKubernetesAdapter kubernetesAdapter,
                                       PipelineConfigGroup pipelineConfigGroup,
                                       TableNameResolver tableNameResolver,
                                       DebeziumServerProxy debeziumServerProxy) {
-        this.k8s = k8s;
+        this.kubernetesAdapter = kubernetesAdapter;
         this.pipelineConfigGroup = pipelineConfigGroup;
         this.tableNameResolver = tableNameResolver;
         this.debeziumServerProxy = debeziumServerProxy;
@@ -143,7 +141,7 @@ public class OperatorPipelineController implements PipelineController {
                 .build();
 
         // apply to server
-        k8s.resource(ds).serverSideApply();
+        kubernetesAdapter.deployPipeline(ds);
     }
 
     private Predicate buildPredicate(Transform transform) {
@@ -210,42 +208,27 @@ public class OperatorPipelineController implements PipelineController {
     }
 
     @Override
-    public void undeploy(Long id) {
-        k8s.resources(DebeziumServer.class)
-                .withLabels(Map.of(LABEL_DBZ_CONDUCTOR_ID, id.toString()))
-                .delete();
+    public void undeploy(Long pipelineId) {
+        kubernetesAdapter.undeployPipeline(pipelineId);
     }
 
     @Override
     public void stop(Long id) {
-        stop(id, true);
+        kubernetesAdapter.changeStatus(id, true);
     }
 
     @Override
     public void start(Long id) {
-        stop(id, false);
+        kubernetesAdapter.changeStatus(id, false);
     }
 
     public Optional<DebeziumServer> findById(Long id) {
-        return k8s.resources(DebeziumServer.class)
-                .withLabels(Map.of(LABEL_DBZ_CONDUCTOR_ID, id.toString()))
-                .list()
-                .getItems()
-                .stream()
-                .findFirst();
-    }
-
-    private TailPrettyLoggable findDeploymentLoggable(Long id) {
-        return findById(id)
-                .map(DebeziumServer::getMetadata)
-                .map(ObjectMeta::getName)
-                .map(name -> k8s.apps().deployments().withName(name))
-                .get();
+        return kubernetesAdapter.findAssociatedDebeziumServer(id);
     }
 
     @Override
     public LogReader logReader(Long id) {
-        return new KubernetesLogReader(() -> findDeploymentLoggable(id));
+        return new KubernetesLogReader(() -> kubernetesAdapter.findLoggableDeployment(id));
     }
 
     @Override
@@ -255,12 +238,5 @@ public class OperatorPipelineController implements PipelineController {
                 () -> {
                     throw new DebeziumException(String.format("Pipeline with id %s not found", pipelineId));
                 });
-    }
-
-    private void stop(Long id, boolean stop) {
-        findById(id).ifPresent(ds -> {
-            ds.setStopped(stop);
-            k8s.resource(ds).serverSideApply();
-        });
     }
 }
