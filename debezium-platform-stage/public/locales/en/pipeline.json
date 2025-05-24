@@ -2,6 +2,15 @@
     "pipeline": "pipeline",
     "configuePipeline": "Configure pipeline",
     "createPipeline": "Create pipeline",
+    "deletePipeline": "Delete pipeline",
+    "userActions": {
+        "overview": "Overview",
+        "logs": "View logs",
+        "download": "Download logs",
+        "actions": "Actions",
+        "edit": "Edit",
+        "delete": "Delete"
+    },
     "pipelinePage": {
         "description": "Add a pipeline to streams change events from a pipeline database. To start select a connector below once you select a connector you can configure it using form or smart editor option. You can also search the connector by its name or toggle the catalog between the list view or card view.",
         "title": "Pipeline",
@@ -43,6 +52,19 @@
         "pipelineComposition": "Pipeline composition",
         "queueUsage": "Queue usage",
         "events": "Events"
+    },
+    "actions": {
+        "title": "Pipeline actions",
+        "description": "Use signaling to perform actions on the pipeline.",
+        "actionField": "Action",
+        "actionTypeField": "Action type",
+        "messageField": "Message",
+        "collectionField": "Collection name",
+        "collectionFieldDescription": "A required component of the data field of a signal that specifies an array of collection names or regular expressions to match collection names to include in the snapshot.",
+        "messageFieldDescription": "The message parameter specifies the string to print to the log. If you add a placeholder ({ }) to the message, it is replaced with streaming coordinates.",
+        "selectAnAction": "Select an action",
+        "actionTypeFieldDescription": "Specifies type parameter specifies the operation that the signal is intended to trigger.",
+        "actionIdHelper": "Its prefilled with UUID string, user can also update it to provide their own ID."
     },
     "logs": {
         "download": "Download Log File",

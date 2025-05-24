@@ -82,7 +82,7 @@ const SourceSinkForm = ({
 
   const [setDone, setSetDone] = useState(false);
 
-  const handleModalToggle = (_event: KeyboardEvent | React.MouseEvent) => {
+  const handleModalToggle = () => {
     setIsModalOpen(!isModalOpen);
     setSignalMissingPayload([]);
   };
@@ -140,7 +140,9 @@ const SourceSinkForm = ({
 
   const configureSignalCollection = async () => {
     setIsLoading(true);
-    updateSignalCollectionName && updateSignalCollectionName(signalColectionName);
+    if (updateSignalCollectionName) {
+      updateSignalCollectionName(signalColectionName);
+    }
     setSetDone(true);
     setIsLoading(false);
     setIsModalOpen(false);
