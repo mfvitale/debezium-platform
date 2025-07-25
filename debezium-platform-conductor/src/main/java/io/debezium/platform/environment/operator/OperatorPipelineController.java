@@ -57,6 +57,7 @@ public class OperatorPipelineController implements PipelineController {
     private static final String NOTIFICATION_ENABLED_CHANNELS_CONFIG = "notification.enabled.channels";
     private static final String DEFAULT_SIGNAL_CHANNELS = "source,in-process";
     private static final String DEFAULT_NOTIFICATION_CHANNELS = "log";
+    private static final String QUARKUS_LOG_CATEGORY_FORMAT = "quarkus.log.category.\"%s\".level";
 
     private final DebeziumKubernetesAdapter kubernetesAdapter;
     private final PipelineConfigGroup pipelineConfigGroup;
@@ -78,9 +79,15 @@ public class OperatorPipelineController implements PipelineController {
 
         // Create DS quarkus configuration
         var quarkusConfig = new ConfigProperties();
-        quarkusConfig.setAllProps(Map.of(
-                "log.level", pipeline.getLogLevel(),
-                "log.console.json", false));
+
+        Map<String, Object> basicLogProperties = Map.of(
+                "log.level", pipeline.getDefaultLogLevel(),
+                "quarkus.log.min-level", "TRACE",
+                "log.console.json", false);
+
+        quarkusConfig.setAllProps(basicLogProperties);
+        quarkusConfig.setAllProps(extractCategoriesLogs(pipeline));
+
         var dsQuarkus = new QuarkusBuilder()
                 .withConfig(quarkusConfig)
                 .build();
@@ -145,6 +152,19 @@ public class OperatorPipelineController implements PipelineController {
 
         // apply to server
         kubernetesAdapter.deployPipeline(ds);
+    }
+
+    private static Map<String, Object> extractCategoriesLogs(PipelineFlat pipeline) {
+        return pipeline.getLogLevels().entrySet().stream()
+                .collect(Collectors.toMap(
+                        entry -> toQuarkusFormat(entry.getKey()),
+                        Map.Entry::getValue,
+                        (v1, v2) -> v1,
+                        HashMap::new));
+    }
+
+    private static String toQuarkusFormat(String key) {
+        return String.format(QUARKUS_LOG_CATEGORY_FORMAT, key);
     }
 
     private Predicate buildPredicate(Transform transform) {

@@ -6,6 +6,7 @@
 package io.debezium.platform.domain.views.flat;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -33,7 +34,9 @@ public interface PipelineFlat extends NamedView {
     List<Transform> getTransforms();
 
     @NotEmpty
-    String getLogLevel();
+    String getDefaultLogLevel();
+
+    Map<String, String> getLogLevels();
 
     void setDescription(String description);
 
@@ -43,7 +46,9 @@ public interface PipelineFlat extends NamedView {
 
     void setDestination(Destination destination);
 
-    void setLogLevel(String logLevel);
+    void setDefaultLogLevel(String logLevel);
+
+    void setLogLevels(Map<String, String> logLevels);
 
     void setTransforms(List<Transform> transforms);
 }
