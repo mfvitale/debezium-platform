@@ -42,7 +42,7 @@ The following script will map the K8s IP to the specified domain into the `/etc/
 
 ```shell
 export DEBEZIUM_PLATFORM_DOMAIN=platform.debezium.io
-./examples/update_hosts.sh
+sudo ./examples/update_hosts.sh
 ```
 
 > **_NOTE:_**
