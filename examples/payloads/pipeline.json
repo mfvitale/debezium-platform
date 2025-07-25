@@ -15,5 +15,8 @@
       "id": 1
     }
   ],
-  "logLevel": "debug"
+  "logLevel": "INFO",
+  "logLevels": {
+    "io.debezium.pipeline.EventDispatcher": "TRACE"
+  }
 }

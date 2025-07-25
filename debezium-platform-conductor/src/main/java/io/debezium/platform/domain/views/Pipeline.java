@@ -6,12 +6,14 @@
 package io.debezium.platform.domain.views;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import com.blazebit.persistence.view.CreatableEntityView;
 import com.blazebit.persistence.view.EntityView;
+import com.blazebit.persistence.view.Mapping;
 import com.blazebit.persistence.view.UpdatableEntityView;
 
 import io.debezium.platform.data.model.PipelineEntity;
@@ -35,7 +37,10 @@ public interface Pipeline extends NamedView {
     List<TransformReference> getTransforms();
 
     @NotEmpty
+    @Mapping("defaultLogLevel")
     String getLogLevel();
+
+    Map<String, String> getLogLevels();
 
     void setDescription(String description);
 
@@ -46,6 +51,8 @@ public interface Pipeline extends NamedView {
     void setDestination(DestinationReference destination);
 
     void setLogLevel(String logLevel);
+
+    void setLogLevels(Map<String, String> logLevels);
 
     void setTransforms(List<TransformReference> transforms);
 }
