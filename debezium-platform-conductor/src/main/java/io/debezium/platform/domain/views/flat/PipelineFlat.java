@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotNull;
 
 import com.blazebit.persistence.view.EntityView;
 import com.blazebit.persistence.view.UpdatableEntityView;
+import com.blazebit.persistence.view.UpdatableMapping;
 
 import io.debezium.platform.data.model.PipelineEntity;
 import io.debezium.platform.domain.views.Destination;
@@ -31,6 +32,7 @@ public interface PipelineFlat extends NamedView {
     @NotNull
     Destination getDestination();
 
+    @UpdatableMapping
     List<Transform> getTransforms();
 
     @NotEmpty
@@ -49,6 +51,4 @@ public interface PipelineFlat extends NamedView {
     void setDefaultLogLevel(String logLevel);
 
     void setLogLevels(Map<String, String> logLevels);
-
-    void setTransforms(List<Transform> transforms);
 }

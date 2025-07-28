@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 import java.util.Map;
 
@@ -44,7 +44,7 @@ class DebeziumServerProxyTest {
     @BeforeEach
     void setUp() {
 
-        initMocks(this);
+        openMocks(this);
 
         proxy = new DebeziumServerProxy(debeziumServerClient, new DebeziumKubernetesAdapter(kubernetesClient));
     }
