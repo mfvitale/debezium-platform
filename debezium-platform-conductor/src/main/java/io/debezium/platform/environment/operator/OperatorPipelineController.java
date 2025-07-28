@@ -24,6 +24,7 @@ import io.debezium.operator.api.model.DebeziumServerSpecBuilder;
 import io.debezium.operator.api.model.Predicate;
 import io.debezium.operator.api.model.PredicateBuilder;
 import io.debezium.operator.api.model.QuarkusBuilder;
+import io.debezium.operator.api.model.Sink;
 import io.debezium.operator.api.model.SinkBuilder;
 import io.debezium.operator.api.model.Transformation;
 import io.debezium.operator.api.model.TransformationBuilder;
@@ -35,6 +36,7 @@ import io.debezium.operator.api.model.source.Offset;
 import io.debezium.operator.api.model.source.OffsetBuilder;
 import io.debezium.operator.api.model.source.SchemaHistory;
 import io.debezium.operator.api.model.source.SchemaHistoryBuilder;
+import io.debezium.operator.api.model.source.Source;
 import io.debezium.operator.api.model.source.SourceBuilder;
 import io.debezium.operator.api.model.source.storage.CustomStoreBuilder;
 import io.debezium.platform.config.PipelineConfigGroup;
@@ -64,6 +66,9 @@ public class OperatorPipelineController implements PipelineController {
     private static final String DEFAULT_NOTIFICATION_CHANNELS = "log";
     private static final String QUARKUS_LOG_CATEGORY_FORMAT = "log.category.\"%s\".level";
     private static final String MIN_LOG_LEVEL = "TRACE";
+    private static final String LOG_MIN_LEVEL_PROP_NAME = "log.min-level";
+    private static final String LOG_LEVEL_PROP_NAME = "log.level";
+    private static final String LOG_CONSOLE_JSON_PROP_NAME = "log.console.json";
 
     private final DebeziumKubernetesAdapter kubernetesAdapter;
     private final PipelineConfigGroup pipelineConfigGroup;
@@ -83,53 +88,17 @@ public class OperatorPipelineController implements PipelineController {
     @Override
     public void deploy(PipelineFlat pipeline) {
 
-        // Create DS quarkus configuration
-        var quarkusConfig = new ConfigProperties();
-
-        Map<String, Object> basicLogProperties = Map.of(
-                "log.level", pipeline.getDefaultLogLevel(),
-                "log.min-level", MIN_LOG_LEVEL,
-                "log.console.json", false);
-
-        quarkusConfig.setAllProps(basicLogProperties);
-        quarkusConfig.setAllProps(extractCategoriesLogs(pipeline));
+        var quarkusConfig = createQuarkusConfig(pipeline);
 
         var dsQuarkus = new QuarkusBuilder()
                 .withConfig(quarkusConfig)
                 .build();
 
-        var dsRuntime = new RuntimeBuilder()
-                .withApi(new RuntimeApiBuilder().withEnabled().build())
-                .withMetrics(new MetricsBuilder()
-                        .withJmxExporter(new JmxExporterBuilder()
-                                .withEnabled()
-                                .build())
-                        .build())
-                .build();
+        var dsRuntime = createRuntime();
 
-        // Create DS source configuration
-        var source = pipeline.getSource();
-        var sourceConfig = new ConfigProperties();
-        sourceConfig.setAllProps(source.getConfig());
-        sourceConfig.setProps(SIGNAL_ENABLED_CHANNELS_CONFIG, DEFAULT_SIGNAL_CHANNELS);
-        sourceConfig.setProps(NOTIFICATION_ENABLED_CHANNELS_CONFIG, DEFAULT_NOTIFICATION_CHANNELS);
+        var dsSource = createSource(pipeline);
 
-        var dsSource = new SourceBuilder()
-                .withSourceClass(source.getType())
-                .withOffset(getOffset(pipeline))
-                .withSchemaHistory(getSchemaHistory(pipeline))
-                .withConfig(sourceConfig)
-                .build();
-
-        // Create DS sink configuration
-        var sink = pipeline.getDestination();
-        var sinkConfig = new ConfigProperties();
-        sinkConfig.setAllProps(sink.getConfig());
-
-        var dsSink = new SinkBuilder()
-                .withType(sink.getType())
-                .withConfig(sinkConfig)
-                .build();
+        var dsSink = createSink(pipeline);
 
         List<Transformation> transformations = pipeline.getTransforms().stream()
                 .map(this::buildTransformation)
@@ -159,6 +128,57 @@ public class OperatorPipelineController implements PipelineController {
         LOGGER.debug("Going to deploy resource {}", ds);
         // apply to server
         kubernetesAdapter.deployPipeline(ds);
+    }
+
+    private static ConfigProperties createQuarkusConfig(PipelineFlat pipeline) {
+        var quarkusConfig = new ConfigProperties();
+
+        Map<String, Object> basicLogProperties = Map.of(
+                LOG_LEVEL_PROP_NAME, pipeline.getDefaultLogLevel(),
+                LOG_MIN_LEVEL_PROP_NAME, MIN_LOG_LEVEL,
+                LOG_CONSOLE_JSON_PROP_NAME, false);
+
+        quarkusConfig.setAllProps(basicLogProperties);
+        quarkusConfig.setAllProps(extractCategoriesLogs(pipeline));
+        return quarkusConfig;
+    }
+
+    private static io.debezium.operator.api.model.runtime.Runtime createRuntime() {
+        return new RuntimeBuilder()
+                .withApi(new RuntimeApiBuilder().withEnabled().build())
+                .withMetrics(new MetricsBuilder()
+                        .withJmxExporter(new JmxExporterBuilder()
+                                .withEnabled()
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private static Sink createSink(PipelineFlat pipeline) {
+        var sink = pipeline.getDestination();
+        var sinkConfig = new ConfigProperties();
+        sinkConfig.setAllProps(sink.getConfig());
+
+        return new SinkBuilder()
+                .withType(sink.getType())
+                .withConfig(sinkConfig)
+                .build();
+    }
+
+    private Source createSource(PipelineFlat pipeline) {
+
+        var source = pipeline.getSource();
+        var sourceConfig = new ConfigProperties();
+        sourceConfig.setAllProps(source.getConfig());
+        sourceConfig.setProps(SIGNAL_ENABLED_CHANNELS_CONFIG, DEFAULT_SIGNAL_CHANNELS);
+        sourceConfig.setProps(NOTIFICATION_ENABLED_CHANNELS_CONFIG, DEFAULT_NOTIFICATION_CHANNELS);
+
+        return new SourceBuilder()
+                .withSourceClass(source.getType())
+                .withOffset(getOffset(pipeline))
+                .withSchemaHistory(getSchemaHistory(pipeline))
+                .withConfig(sourceConfig)
+                .build();
     }
 
     private static Map<String, Object> extractCategoriesLogs(PipelineFlat pipeline) {
