@@ -13,6 +13,7 @@ import jakarta.enterprise.context.Dependent;
 
 import org.jboss.logging.Logger;
 
+import com.blazebit.persistence.view.EntityViewManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.platform.domain.views.Vault;
@@ -22,8 +23,8 @@ import io.debezium.platform.environment.watcher.events.EventType;
 @Dependent
 public class VaultConsumer extends AbstractEventConsumer<Vault> {
 
-    public VaultConsumer(Logger logger, EnvironmentController environment, ObjectMapper objectMapper) {
-        super(logger, environment, objectMapper, Vault.class);
+    public VaultConsumer(Logger logger, EnvironmentController environment, ObjectMapper objectMapper, EntityViewManager evm) {
+        super(logger, environment, objectMapper, evm, Vault.class);
     }
 
     @Override

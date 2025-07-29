@@ -13,6 +13,7 @@ import jakarta.enterprise.context.Dependent;
 
 import org.jboss.logging.Logger;
 
+import com.blazebit.persistence.view.EntityViewManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.debezium.platform.domain.views.flat.PipelineFlat;
@@ -22,8 +23,8 @@ import io.debezium.platform.environment.watcher.events.EventType;
 @Dependent
 public class PipelineConsumer extends AbstractEventConsumer<PipelineFlat> {
 
-    public PipelineConsumer(Logger logger, EnvironmentController environment, ObjectMapper objectMapper) {
-        super(logger, environment, objectMapper, PipelineFlat.class);
+    public PipelineConsumer(Logger logger, EnvironmentController environment, ObjectMapper objectMapper, EntityViewManager evm) {
+        super(logger, environment, objectMapper, evm, PipelineFlat.class);
     }
 
     @Override
