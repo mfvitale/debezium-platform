@@ -21,13 +21,17 @@ import org.mockito.Mockito;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 import io.debezium.operator.api.model.DebeziumServer;
+import io.debezium.platform.MockedTestProfile;
 import io.debezium.platform.environment.operator.actions.DebeziumKubernetesAdapter;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 
 @QuarkusTest
+// This forces Quarkus to load another test context so that the @InjectMock works as expected.
+@TestProfile(MockedTestProfile.class)
 @EnableKubernetesMockClient(crud = true)
 class PipelineResourceIT {
 
@@ -195,4 +199,5 @@ class PipelineResourceIT {
                 .containsEntry("quarkus.log.level", "INFO")
                 .containsEntry("quarkus.log.min-level", "TRACE");
     }
+
 }

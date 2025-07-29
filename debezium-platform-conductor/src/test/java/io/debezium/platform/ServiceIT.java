@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Assumptions;
@@ -59,6 +60,17 @@ public class ServiceIT {
     static List<Vault> vaults = new ArrayList<>();
     static List<Transform> transforms = new ArrayList<>();
     static Pipeline pipeline;
+
+    @Test
+    @Order(999)
+    @Transactional
+    public void cleanupAll() {
+        pipelineService.list().forEach(p -> pipelineService.delete(p.getId()));
+        transformService.list().forEach(t -> transformService.delete(t.getId()));
+        destinationService.list().forEach(d -> destinationService.delete(d.getId()));
+        sourceService.list().forEach(s -> sourceService.delete(s.getId()));
+        vaultService.list().forEach(v -> vaultService.delete(v.getId()));
+    }
 
     @Test
     @Order(0)
