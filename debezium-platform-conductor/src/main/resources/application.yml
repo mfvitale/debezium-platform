@@ -127,6 +127,12 @@ quarkus:
           level: TRACE
 
 "%test":
+  conductor:
+    watcher:
+      enabled: true
+      offset:
+        storage:
+          type: org.apache.kafka.connect.storage.MemoryOffsetBackingStore
   quarkus:
     datasource:
       devservices:
