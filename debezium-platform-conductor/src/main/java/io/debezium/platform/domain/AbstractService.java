@@ -21,6 +21,7 @@ import com.blazebit.persistence.view.EntityViewManager;
 import com.blazebit.persistence.view.EntityViewSetting;
 
 import io.debezium.platform.domain.views.base.IdView;
+import io.debezium.platform.error.NotFoundException;
 
 /**
  * Service ancestor
@@ -91,6 +92,7 @@ public class AbstractService<E, T extends IdView, R extends IdView> {
     }
 
     public T update(@Valid T view) {
+        findByIdAs(viewType, view.getId()).orElseThrow(() -> new NotFoundException(view.getId()));
         evm.save(em, view);
         onChange(view);
         return view;
