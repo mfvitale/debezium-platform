@@ -34,6 +34,7 @@ import org.jboss.logging.Logger;
 
 import com.blazebit.persistence.integration.jaxrs.EntityViewId;
 
+import io.debezium.platform.data.dto.ConnectionValidationResult;
 import io.debezium.platform.domain.ConnectionService;
 import io.debezium.platform.domain.views.Connection;
 
@@ -98,7 +99,7 @@ public class ConnectionResource {
     }
 
     @Operation(summary = "Verify that the connection is valid")
-    @APIResponse(responseCode = "200", content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = URI.class, required = true)))
+    @APIResponse(responseCode = "200", content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = ConnectionValidationResult.class, type = SchemaType.OBJECT)))
     @POST
     @Path("/validate")
     public Response validateConnection(@NotNull @Valid Connection connection) {
