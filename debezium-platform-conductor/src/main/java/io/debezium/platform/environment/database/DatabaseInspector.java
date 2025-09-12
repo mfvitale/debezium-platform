@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,7 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.DebeziumException;
+import io.debezium.jdbc.JdbcConnection;
 import io.debezium.platform.data.dto.CollectionNode;
+import io.debezium.relational.TableId;
 
 @ApplicationScoped
 public class DatabaseInspector {
@@ -118,6 +121,23 @@ public class DatabaseInspector {
                 }
             }
         }
+
+        return hierarchicalData;
+    }
+
+    public Map<String, Map<String, List<CollectionNode>>> getAllTableNames(JdbcConnection connection) throws SQLException {
+
+        Map<String, Map<String, List<CollectionNode>>> hierarchicalData = new HashMap<>();
+
+        Set<TableId> tableIds = connection.readTableNames(null, null, MATCH_ALL_PATTERN, new String[]{ TABLE_TYPE });
+        tableIds.forEach(tableId -> {
+            CollectionNode collectionNode = new CollectionNode(tableId.table(), tableId.identifier());
+
+            hierarchicalData
+                    .computeIfAbsent(tableId.catalog(), k -> new HashMap<>())
+                    .computeIfAbsent(tableId.schema(), k -> new ArrayList<>())
+                    .add(collectionNode);
+        });
 
         return hierarchicalData;
     }
