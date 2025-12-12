@@ -1,5 +1,5 @@
 domain:
-  url: ""
+  url: "test"
 stage:
   image: quay.io/debezium/platform-stage:nightly
 conductor:
