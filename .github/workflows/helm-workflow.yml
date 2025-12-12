@@ -32,3 +32,9 @@ jobs:
       - name: Helm template and validate with kubeconform
         run: |
           helm template debezium-platform helm/ -f examples/example.yaml | kubeconform -strict -summary
+
+      - name: Install helm-unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --verify=false
+
+      - name: Run helm unit tests
+        run: helm unittest helm/
