@@ -45,6 +45,10 @@ destinations:
     connection:
       timeout: 60
 
+# Context7 MCP integration
+context7:
+  api-key: ${CONTEXT7_API_KEY:fake}
+
 quarkus:
   hibernate-orm:
     mapping:
@@ -73,6 +77,36 @@ quarkus:
     migrate-at-start: true
   swagger-ui:
     always-include: true
+  # LangChain4j Anthropic configuration
+  langchain4j:
+    anthropic:
+      api-key: ${CHAT_OPENAI_API_KEY:fake}
+      base-url: ${CHAT_OPENAI_BASE_URL:fake}
+      chat-model:
+        model-name: ${CHAT_OPENAI_MODEL_NAME:fake}
+        log-requests: ${CHAT_LOG_REQUESTS:false}
+        log-responses: ${CHAT_LOG_RESPONSES:false}
+    # MCP client configurations
+    mcp:
+      debezium-platform:
+        transport-type: streamable-http
+        url: http://localhost:8081/mcp
+        log-requests: ${MCP_LOG_REQUESTS:false}
+        log-responses: ${MCP_LOG_RESPONSES:false}
+      context7:
+        transport-type: streamable-http
+        url: https://mcp.context7.com/mcp
+        log-requests: ${MCP_LOG_REQUESTS:false}
+        log-responses: ${MCP_LOG_RESPONSES:false}
+  # MCP server schema generator configuration
+  mcp:
+    server:
+      schema-generator:
+        jakarta-validation:
+          enabled: true
+          not-nullable-field-is-required: true
+          not-nullable-method-is-required: true
+          include-pattern-expressions: true
   log:
     min-level: TRACE
     level: INFO

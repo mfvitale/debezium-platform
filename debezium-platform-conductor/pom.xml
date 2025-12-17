@@ -71,12 +71,46 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- Quarkus LangChain4j BOM to manage quarkus-langchain4j extensions -->
+            <dependency>
+                <groupId>io.quarkiverse.langchain4j</groupId>
+                <artifactId>quarkus-langchain4j-bom</artifactId>
+                <version>1.4.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Override langchain4j-bom from debezium-parent to match quarkus-langchain4j:1.4.2 -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-bom</artifactId>
+                <version>1.8.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Quarkus MCP Server BOM to manage MCP server extensions -->
+            <dependency>
+                <groupId>io.quarkiverse.mcp</groupId>
+                <artifactId>quarkus-mcp-server-bom</artifactId>
+                <version>1.8.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers-bom</artifactId>
                 <version>${version.test-containers}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- langchain4j-core needs 1.9.1 for vertex-ai-anthropic compatibility -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-core</artifactId>
+                <version>1.9.1</version>
             </dependency>
 
             <dependency>
@@ -474,6 +508,38 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-test-kafka-companion</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!-- AI/MCP Dependencies -->
+        <!-- Quarkus LangChain4j Extensions - versions managed by quarkus-langchain4j-bom -->
+        <dependency>
+            <groupId>io.quarkiverse.langchain4j</groupId>
+            <artifactId>quarkus-langchain4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.langchain4j</groupId>
+            <artifactId>quarkus-langchain4j-anthropic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.langchain4j</groupId>
+            <artifactId>quarkus-langchain4j-mcp</artifactId>
+        </dependency>
+
+        <!-- MCP Server Extensions - versions managed by quarkus-mcp-server-bom -->
+        <dependency>
+            <groupId>io.quarkiverse.mcp</groupId>
+            <artifactId>quarkus-mcp-server-http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.mcp</groupId>
+            <artifactId>quarkus-mcp-server-hibernate-validator</artifactId>
+        </dependency>
+
+        <!-- Vanilla LangChain4j for custom VertexAI Anthropic model (dev profile only) -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-vertex-ai-anthropic</artifactId>
+            <version>1.9.1-beta17</version>
         </dependency>
     </dependencies>
     <build>
