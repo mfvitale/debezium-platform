@@ -9,6 +9,11 @@ public class NotFoundException extends RuntimeException {
 
     private final long id;
 
+    public NotFoundException(String message) {
+        super(message);
+        this.id = -1;
+    }
+
     public NotFoundException(Long id) {
         super("Invalid resource with id: " + id);
         this.id = id;
