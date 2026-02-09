@@ -11,6 +11,13 @@ conductor:
         flush:
           interval:
             ms: 300
+  descriptors:
+    image:
+      registry: quay.io
+      name: debezium/debezium-descriptors
+      tag: nightly
+    volume-source: false
+    path: descriptors
 pipeline:
   offset:
     storage:
@@ -76,6 +83,11 @@ quarkus:
   log:
     min-level: TRACE
     level: INFO
+  oras:
+    registries:
+      "registry":
+        host: ${conductor.descriptors.image.registry}
+        enabled: true
 
 "%dev":
   conductor:
