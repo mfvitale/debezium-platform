@@ -49,6 +49,12 @@ spec:
               value: "jdbc:postgresql://{{ .Values.database.host }}:5432/{{ .Values.database.name }}"
             - name: QUARKUS_KUBERNETES_CLIENT_NAMESPACE
               value: {{ .Release.Namespace }}
+            - name: CONDUCTOR_DESCRIPTORS_IMAGE_REGISTRY
+              value: {{ .Values.conductor.descriptors.image.registry }}
+            - name: CONDUCTOR_DESCRIPTORS_IMAGE_NAME
+              value: {{ .Values.conductor.descriptors.image.name }}
+            - name: CONDUCTOR_DESCRIPTORS_IMAGE_TAG
+              value: {{ .Values.conductor.descriptors.image.tag }}
 {{ include "debezium-platform.offsetConfig" . | indent 12 }}
 {{ include "debezium-platform.schemaHistoryConfig" . | indent 12 }}
 {{- range .Values.env }}
