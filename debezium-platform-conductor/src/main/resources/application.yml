@@ -73,6 +73,9 @@ destinations:
   rabbitmq:
     connection:
       timeout: 60
+  pubsub:
+    connection:
+      timeout: 60
   qdrant:
     connection:
       timeout: 60
