@@ -7,6 +7,13 @@ conductor:
   image: quay.io/debezium/platform-conductor:nightly
   offset:
     existingConfigMap: ""
+  descriptors:
+    official:
+      enabled: true
+      registry: quay.io
+      image: debezium/debezium-descriptors
+      tag: nightly
+      mountPath: /opt/descriptors
 ingress:
   enabled: true
   className: ""

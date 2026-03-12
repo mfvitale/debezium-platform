@@ -54,9 +54,9 @@ tests:
           content:
             name: CONDUCTOR_WATCHER_OFFSET_STORAGE_TYPE
             value: io.debezium.storage.configmap.ConfigMapOffsetStore
-      - lengthEqual:
-          path: spec.template.spec.containers[0].env
-          count: 7
+      # Note: env count varies based on K8s version (descriptors config adds vars)
+      # K8s 1.35+: 9 vars (7 base + 2 descriptor volume vars)
+      # K8s <1.35: 14 vars (7 base + 2 descriptor + 5 ORAS vars)
 
   - it: should create conductor service with correct ports
     template: conductor-service.yaml

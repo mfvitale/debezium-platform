@@ -30,6 +30,11 @@ you `values.yaml` with your domain.
 | stage.image                                | Image for the stage (UI)                                                                                                                                                               | quay.io/debezium/platform-stage:latest     |
 | conductor.image                            | Image for the conductor                                                                                                                                                                | quay.io/debezium/platform-conductor:latest |
 | conductor.offset.existingConfigMap         | Name of the config map used to store conductor offsets. If empty it will be automatically created.                                                                                     | ""                                         |
+| conductor.descriptors.official.enabled     | Enable official Debezium descriptors (downloaded via ORAS at startup)                                                                                                                 | true                                       |
+| conductor.descriptors.official.registry    | Registry hosting the descriptor OCI artifact                                                                                                                                           | quay.io                                    |
+| conductor.descriptors.official.image       | Image name for the descriptor OCI artifact                                                                                                                                             | debezium/debezium-descriptors              |
+| conductor.descriptors.official.tag         | Image tag for the descriptor OCI artifact                                                                                                                                              | nightly                                    |
+| conductor.descriptors.official.mountPath   | Path where descriptors will be downloaded inside the container                                                                                                                         | /opt/descriptors                           |
 | database.enabled                           | Enable the installation of PostgreSQL by the chart                                                                                                                                     | false                                      |
 | database.name                              | Database name                                                                                                                                                                          | postgres                                   |
 | database.host                              | Database host                                                                                                                                                                          | postgres                                   |
@@ -51,6 +56,71 @@ you `values.yaml` with your domain.
 | schemaHistory.database.auth.username       | Database username                                                                                                                                                                      | user                                       |
 | schemaHistory.database.auth.password       | Database password                                                                                                                                                                      | password                                   |                                                                                                                                                                       |                                                                                                                                                                                 |                                             |
 | env                                        | List of env variable to pass to the conductor                                                                                                                                          | []                                         |
+
+## Descriptor OCI Artifacts
+
+The conductor uses OCI artifacts containing component descriptors (JSON files) for connectors and transformations. This enables the platform to:
+- Discover available connectors and transformations
+- Render UI forms for configuration
+- Validate pipeline configurations
+
+### How it Works
+
+At conductor startup, the OCI artifact is downloaded using **ORAS** (OCI Registry as Storage):
+- Downloads the descriptor OCI artifact to local filesystem
+- Extracts all descriptor JSON files
+- Adds ~5-15 seconds to startup time
+- Works on any Kubernetes version
+
+### Configuration
+
+The official Debezium descriptors are enabled by default:
+
+```yaml
+conductor:
+  descriptors:
+    official:
+      enabled: true
+      registry: quay.io
+      image: debezium/debezium-descriptors
+      tag: nightly
+      mountPath: /opt/descriptors
+```
+
+To use a specific version:
+
+```yaml
+conductor:
+  descriptors:
+    official:
+      enabled: true
+      tag: 3.5.0  # Override just the tag
+```
+
+To disable descriptors:
+
+```yaml
+conductor:
+  descriptors:
+    official:
+      enabled: false
+```
+
+### OCI Artifact Structure
+
+Descriptor OCI artifacts should follow this structure:
+
+```
+debezium-descriptors:nightly
+└── <version>/
+    ├── manifest.json
+    ├── source-connector/
+    │   └── io.debezium.connector.mysql.MySqlConnector.json
+    └── transformation/
+        └── io.debezium.transforms.ExtractNewRecordState.json
+```
+
+The artifact contents are extracted to the configured `mountPath`.
 
 # Install
 
