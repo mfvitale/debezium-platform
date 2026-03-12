@@ -13,6 +13,42 @@
                         }
                     },
                     "type": "object"
+                },
+                "descriptors": {
+                    "type": "object",
+                    "properties": {
+                        "official": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true,
+                                    "description": "Enable official Debezium descriptors (downloaded via ORAS at startup)"
+                                },
+                                "registry": {
+                                    "type": "string",
+                                    "default": "quay.io",
+                                    "description": "Registry hosting the descriptor OCI artifact"
+                                },
+                                "image": {
+                                    "type": "string",
+                                    "default": "debezium/debezium-descriptors",
+                                    "description": "Image name for the descriptor OCI artifact"
+                                },
+                                "tag": {
+                                    "type": "string",
+                                    "default": "nightly",
+                                    "description": "Image tag for the descriptor OCI artifact"
+                                },
+                                "mountPath": {
+                                    "type": "string",
+                                    "default": "/opt/descriptors",
+                                    "description": "Path where descriptors will be downloaded inside the container"
+                                }
+                            },
+                            "required": ["enabled", "registry", "image", "tag", "mountPath"]
+                        }
+                    }
                 }
             },
             "type": "object"

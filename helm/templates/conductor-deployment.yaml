@@ -49,6 +49,19 @@ spec:
               value: "jdbc:postgresql://{{ .Values.database.host }}:5432/{{ .Values.database.name }}"
             - name: QUARKUS_KUBERNETES_CLIENT_NAMESPACE
               value: {{ .Release.Namespace }}
+{{- if and .Values.conductor.descriptors .Values.conductor.descriptors.official .Values.conductor.descriptors.official.enabled }}
+            # ORAS download mode
+            - name: CONDUCTOR_DESCRIPTORS_VOLUME_SOURCE
+              value: "false"
+            - name: CONDUCTOR_DESCRIPTORS_PATH
+              value: {{ .Values.conductor.descriptors.official.mountPath }}
+            - name: CONDUCTOR_DESCRIPTORS_IMAGE_REGISTRY
+              value: {{ .Values.conductor.descriptors.official.registry }}
+            - name: CONDUCTOR_DESCRIPTORS_IMAGE_NAME
+              value: {{ .Values.conductor.descriptors.official.image }}
+            - name: CONDUCTOR_DESCRIPTORS_IMAGE_TAG
+              value: {{ .Values.conductor.descriptors.official.tag }}
+{{- end }}
 {{ include "debezium-platform.offsetConfig" . | indent 12 }}
 {{ include "debezium-platform.schemaHistoryConfig" . | indent 12 }}
 {{- range .Values.env }}
