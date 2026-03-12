@@ -12,12 +12,10 @@ conductor:
           interval:
             ms: 300
   descriptors:
-    image:
-      registry: quay.io
-      name: debezium/debezium-descriptors
-      tag: nightly
-    volume-source: false
-    path: descriptors
+    # Default for K8s/production - expects volumes to be mounted
+    volume-source: true
+    path: /opt/descriptors
+    # ORAS-specific properties (registry, name, tag) are in %dev profile only
 pipeline:
   offset:
     storage:
@@ -89,14 +87,17 @@ quarkus:
   log:
     min-level: TRACE
     level: INFO
-  oras:
-    registries:
-      "registry":
-        host: ${conductor.descriptors.image.registry}
-        enabled: true
 
 "%dev":
   conductor:
+    descriptors:
+      # ORAS download mode (dev only)
+      volume-source: false
+      path: descriptors
+      image:
+        registry: quay.io
+        name: debezium/debezium-descriptors
+        tag: nightly
     watcher:
       enabled: true
       crd: https://raw.githubusercontent.com/debezium/debezium-operator/main/k8/debeziumservers.debezium.io-v1.yml
@@ -155,6 +156,11 @@ quarkus:
           level: INFO
         "io.debezium.platform.environment.actions":
           level: TRACE
+    oras:
+      registries:
+        "registry":
+          host: ${conductor.descriptors.image.registry}
+          enabled: true
 
 "%test":
   conductor:
