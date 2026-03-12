@@ -13,25 +13,6 @@
                         }
                     },
                     "type": "object"
-                },
-                "descriptors": {
-                    "properties": {
-                        "image": {
-                            "properties": {
-                                "registry": {
-                                    "type": "string"
-                                },
-                                "name": {
-                                    "type": "string"
-                                },
-                                "tag": {
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
-                        }
-                    },
-                    "type": "object"
                 }
             },
             "type": "object"
