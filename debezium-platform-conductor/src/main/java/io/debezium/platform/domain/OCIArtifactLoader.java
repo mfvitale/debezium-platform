@@ -14,17 +14,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.quarkiverse.oras.runtime.OrasRegistry;
-import io.quarkus.arc.properties.IfBuildProperty;
 import io.quarkus.runtime.Startup;
 
 import land.oras.ContainerRef;
 import land.oras.Registry;
 
 @ApplicationScoped
-@IfBuildProperty(name = "conductor.descriptors.volume-source", stringValue = "false")
 public class OCIArtifactLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OCIArtifactLoader.class);
+
+    @ConfigProperty(name = "conductor.descriptors.volume-source", defaultValue = "false")
+    boolean volumeSource;
 
     @ConfigProperty(name = "conductor.descriptors.path")
     String ociArtifactExtractionPath;
@@ -46,6 +47,11 @@ public class OCIArtifactLoader {
 
     @Startup
     public void pullArtifacts() {
+
+        if (volumeSource) {
+            LOGGER.info("Descriptor volume source enabled, skipping ORAS download. Reading from: {}", ociArtifactExtractionPath);
+            return;
+        }
 
         String fullImageRef = String.format("%s:%s", ociArtifactName, ociArtifactTag);
         LOGGER.info("Downloading {} from {}", fullImageRef, ociArtifactRegistry);
