@@ -260,4 +260,138 @@ public class CatalogResourceIT {
                 .body("components.'source-connector'[0].description", notNullValue())
                 .body("components.'source-connector'[0].descriptor", notNullValue());
     }
+
+    @Test
+    public void testGetCatalogWithoutVersion() {
+        given()
+                .when()
+                .get("api/catalog")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("schemaVersion", notNullValue())
+                .body("build", notNullValue())
+                .body("build.timestamp", notNullValue())
+                .body("build.sourceRepository", notNullValue())
+                .body("build.sourceCommit", notNullValue())
+                .body("components", notNullValue())
+                .body("components.keySet()", not(empty()))
+                .body("components.keySet()", hasItem("source-connector"))
+                .body("components.keySet()", hasItem("sink-connector"))
+                .body("components.keySet()", hasItem("transformation"));
+    }
+
+    @Test
+    public void testGetCatalogWithoutVersionAndWithType() {
+        given()
+                .queryParam("type", "source-connector")
+                .when()
+                .get("api/catalog")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("schemaVersion", notNullValue())
+                .body("components", notNullValue())
+                .body("components.keySet()", hasSize(1))
+                .body("components.keySet()", hasItem("source-connector"))
+                .body("components.'source-connector'", not(empty()))
+                .body("components.'source-connector'[0].class", notNullValue())
+                .body("components.'source-connector'[0].name", notNullValue())
+                .body("components.'source-connector'[0].description", notNullValue())
+                .body("components.'source-connector'[0].descriptor", notNullValue());
+    }
+
+    @Test
+    public void testGetSourceConnectorDescriptorWithoutVersion() {
+        given()
+                .pathParam("type", "source-connector")
+                .pathParam("class", "io.debezium.connector.mysql.MySqlConnector")
+                .when()
+                .get("api/catalog/{type}/{class}")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("name", notNullValue())
+                .body("type", notNullValue())
+                .body("version", notNullValue())
+                .body("metadata", notNullValue())
+                .body("metadata.description", notNullValue())
+                .body("properties", not(empty()))
+                .body("properties[0].name", notNullValue())
+                .body("properties[0].type", notNullValue())
+                .body("properties[0].display", notNullValue())
+                .body("groups", not(empty()))
+                .body("groups[0].name", notNullValue());
+    }
+
+    @Test
+    public void testGetPostgresConnectorDescriptorWithoutVersion() {
+        given()
+                .pathParam("type", "source-connector")
+                .pathParam("class", "io.debezium.connector.postgresql.PostgresConnector")
+                .when()
+                .get("api/catalog/{type}/{class}")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("name", notNullValue())
+                .body("type", notNullValue())
+                .body("version", notNullValue())
+                .body("properties", not(empty()));
+    }
+
+    @Test
+    public void testGetSinkConnectorDescriptorWithoutVersion() {
+        given()
+                .pathParam("type", "sink-connector")
+                .pathParam("class", "io.debezium.connector.jdbc.JdbcSinkConnector")
+                .when()
+                .get("api/catalog/{type}/{class}")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("name", notNullValue())
+                .body("type", notNullValue())
+                .body("version", notNullValue())
+                .body("properties", not(empty()));
+    }
+
+    @Test
+    public void testGetTransformationDescriptorWithoutVersion() {
+        given()
+                .pathParam("type", "transformation")
+                .pathParam("class", "io.debezium.transforms.ExtractNewRecordState")
+                .when()
+                .get("api/catalog/{type}/{class}")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("name", notNullValue())
+                .body("type", notNullValue())
+                .body("version", notNullValue())
+                .body("properties", not(empty()))
+                .body("properties[0].name", notNullValue());
+    }
+
+    @Test
+    public void testGetDescriptorWithoutVersionAndInvalidType() {
+        given()
+                .pathParam("type", "invalid-type")
+                .pathParam("class", "io.debezium.connector.mysql.MySqlConnector")
+                .when()
+                .get("api/catalog/{type}/{class}")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    public void testGetDescriptorWithoutVersionAndInvalidClass() {
+        given()
+                .pathParam("type", "source-connector")
+                .pathParam("class", "io.debezium.connector.InvalidConnector")
+                .when()
+                .get("api/catalog/{type}/{class}")
+                .then()
+                .statusCode(404);
+    }
 }
