@@ -164,6 +164,14 @@ quarkus:
 
 "%test":
   conductor:
+    descriptors:
+      # ORAS download mode for tests (same as dev)
+      volume-source: false
+      path: descriptors
+      image:
+        registry: quay.io
+        name: debezium/debezium-descriptors
+        tag: nightly
     watcher:
       enabled: true
       offset:
@@ -176,3 +184,8 @@ quarkus:
         image-name: quay.io/debezium/postgres:16-alpine
     flyway:
       baseline-on-migrate: true
+    oras:
+      registries:
+        "registry":
+          host: ${conductor.descriptors.image.registry}
+          enabled: true
