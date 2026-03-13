@@ -8,6 +8,8 @@ package io.debezium.platform.domain;
 import java.nio.file.Path;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -24,26 +26,24 @@ public class OCIArtifactLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OCIArtifactLoader.class);
 
-    @ConfigProperty(name = "conductor.descriptors.volume-source", defaultValue = "false")
+    @ConfigProperty(name = "conductor.descriptors.volume-source", defaultValue = "true")
     boolean volumeSource;
 
-    @ConfigProperty(name = "conductor.descriptors.path")
+    @ConfigProperty(name = "conductor.descriptors.path", defaultValue = "/opt/descriptors")
     String ociArtifactExtractionPath;
 
-    @ConfigProperty(name = "conductor.descriptors.image.registry")
+    @ConfigProperty(name = "conductor.descriptors.image.registry", defaultValue = "quay.io")
     String ociArtifactRegistry;
 
-    @ConfigProperty(name = "conductor.descriptors.image.name")
+    @ConfigProperty(name = "conductor.descriptors.image.name", defaultValue = "debezium/debezium-descriptors")
     String ociArtifactName;
 
-    @ConfigProperty(name = "conductor.descriptors.image.tag")
+    @ConfigProperty(name = "conductor.descriptors.image.tag", defaultValue = "nightly")
     String ociArtifactTag;
 
-    Registry registry;
-
-    public OCIArtifactLoader(@OrasRegistry("registry") Registry registry) {
-        this.registry = registry;
-    }
+    @Inject
+    @OrasRegistry("registry")
+    Instance<Registry> registryInstance;
 
     @Startup
     public void pullArtifacts() {
@@ -53,6 +53,12 @@ public class OCIArtifactLoader {
             return;
         }
 
+        if (registryInstance.isUnsatisfied()) {
+            LOGGER.warn("ORAS Registry not available, skipping descriptor download. Ensure ORAS is configured in your profile.");
+            return;
+        }
+
+        Registry registry = registryInstance.get();
         String fullImageRef = String.format("%s:%s", ociArtifactName, ociArtifactTag);
         LOGGER.info("Downloading {} from {}", fullImageRef, ociArtifactRegistry);
         LOGGER.info("Manifest: {}", registry.getManifest(ContainerRef.parse(fullImageRef)).getJson());
