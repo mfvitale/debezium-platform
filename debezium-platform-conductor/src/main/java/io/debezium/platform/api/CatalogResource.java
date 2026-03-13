@@ -14,6 +14,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -27,8 +28,21 @@ public class CatalogResource {
 
     private final CatalogService catalogService;
 
+    @ConfigProperty(name = "quarkus.application.version")
+    String applicationVersion;
+
     public CatalogResource(CatalogService catalogService) {
         this.catalogService = catalogService;
+    }
+
+    @Operation(summary = "Returns all available components for the current application version")
+    @APIResponse(responseCode = "200", content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(required = true, type = SchemaType.OBJECT)))
+    @GET
+    @Produces("application/json")
+    public Response getCatalog(@QueryParam("type") String componentType) {
+        return Response.status(200)
+                .entity(catalogService.getCatalog(applicationVersion, componentType))
+                .build();
     }
 
     @Operation(summary = "Returns all available components for a specific version")
@@ -40,6 +54,18 @@ public class CatalogResource {
 
         return Response.status(200)
                 .entity(catalogService.getCatalog(version, componentType))
+                .build();
+    }
+
+    @Operation(summary = "Returns descriptors for a specific component using current application version")
+    @APIResponse(responseCode = "200", content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(required = true, type = SchemaType.OBJECT)))
+    @GET
+    @Produces("application/json")
+    @Path("/{type}/{class}")
+    public Response getComponentDescriptor(@PathParam("type") String componentType,
+                                           @PathParam("class") String componentClass) {
+        return Response.status(200)
+                .entity(catalogService.getComponentDescriptor(applicationVersion, componentType, componentClass))
                 .build();
     }
 
