@@ -89,7 +89,7 @@ public class CatalogService {
 
         if (!Files.exists(manifestFilePath)) {
             LOGGER.debug("Descriptor file for {} not found in path {}", componentClass, manifestFilePath);
-            throw new NotFoundException(String.format("Descriptor not found for component: %s", componentClass));
+            throw new NotFoundException(String.format("Descriptor not found for component %s of version %s", componentClass, version));
         }
 
         try {
