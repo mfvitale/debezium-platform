@@ -12,10 +12,18 @@ conductor:
           interval:
             ms: 300
   descriptors:
-    # Default for K8s/production - expects volumes to be mounted
+    # Volume source mode (controlled by environment or profile)
+    # - true: Read from mounted volumes (K8s 1.35+ image volumes)
+    # - false: Download via ORAS (K8s <1.35 or dev/test)
     volume-source: true
     path: /opt/descriptors
-    # ORAS-specific properties (registry, name, tag) are in %dev profile only
+
+    # ORAS download configuration (used when volume-source=false)
+    # In production (K8s <1.35), these are overridden by Helm via environment variables
+    image:
+      registry: quay.io
+      name: debezium/debezium-descriptors
+      tag: nightly
 pipeline:
   offset:
     storage:
@@ -88,16 +96,22 @@ quarkus:
     min-level: TRACE
     level: INFO
 
+  # ORAS registry configuration (profile-independent)
+  # Registry bean is created when host is configured
+  # Whether it's actually used is controlled by conductor.descriptors.volume-source
+  # Setting a default value ensures the bean is created at build time
+  oras:
+    registries:
+      "registry":
+        host: ${conductor.descriptors.image.registry}
+        enabled: true
+
 "%dev":
   conductor:
     descriptors:
-      # ORAS download mode (dev only)
+      # Override to use ORAS download mode in dev
       volume-source: false
       path: descriptors
-      image:
-        registry: quay.io
-        name: debezium/debezium-descriptors
-        tag: nightly
     watcher:
       enabled: true
       crd: https://raw.githubusercontent.com/debezium/debezium-operator/main/k8/debeziumservers.debezium.io-v1.yml
@@ -156,22 +170,13 @@ quarkus:
           level: INFO
         "io.debezium.platform.environment.actions":
           level: TRACE
-    oras:
-      registries:
-        "registry":
-          host: ${conductor.descriptors.image.registry}
-          enabled: true
 
 "%test":
   conductor:
     descriptors:
-      # ORAS download mode for tests (same as dev)
+      # Override to use ORAS download mode in test
       volume-source: false
       path: descriptors
-      image:
-        registry: quay.io
-        name: debezium/debezium-descriptors
-        tag: nightly
     watcher:
       enabled: true
       offset:
@@ -184,8 +189,3 @@ quarkus:
         image-name: quay.io/debezium/postgres:16-alpine
     flyway:
       baseline-on-migrate: true
-    oras:
-      registries:
-        "registry":
-          host: ${conductor.descriptors.image.registry}
-          enabled: true
