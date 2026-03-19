@@ -58,13 +58,22 @@ public class OCIArtifactLoader {
             return;
         }
 
-        Registry registry = registryInstance.get();
-        String fullImageRef = String.format("%s:%s", ociArtifactName, ociArtifactTag);
-        LOGGER.info("Downloading {} from {}", fullImageRef, ociArtifactRegistry);
-        LOGGER.info("Manifest: {}", registry.getManifest(ContainerRef.parse(fullImageRef)).getJson());
+        try {
+            Registry registry = registryInstance.get();
+            String fullImageRef = String.format("%s:%s", ociArtifactName, ociArtifactTag);
+            LOGGER.info("Downloading {} from {}", fullImageRef, ociArtifactRegistry);
+            LOGGER.info("Manifest: {}", registry.getManifest(ContainerRef.parse(fullImageRef)).getJson());
 
-        // Use absolute path to avoid normalization issues with tar entries like "./"
-        Path targetDir = Path.of(ociArtifactExtractionPath).toAbsolutePath();
-        registry.pullArtifact(ContainerRef.parse(fullImageRef), targetDir, true);
+            // Use absolute path to avoid normalization issues with tar entries like "./"
+            Path targetDir = Path.of(ociArtifactExtractionPath).toAbsolutePath();
+            registry.pullArtifact(ContainerRef.parse(fullImageRef), targetDir, true);
+
+            LOGGER.info("Successfully downloaded descriptors to {}", targetDir);
+        }
+        catch (Exception e) {
+            LOGGER.error("Failed to download descriptor OCI artifact from {}. " +
+                    "Descriptor features may not be available. Error: {}",
+                    ociArtifactRegistry, e.getMessage(), e);
+        }
     }
 }
