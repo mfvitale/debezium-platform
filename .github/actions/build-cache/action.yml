@@ -74,6 +74,13 @@ runs:
         ref: ${{ inputs.debezium-db2-ref }}
         path: ${{ inputs.working-directory }}/debezium-connector-db2
 
+    - name: Checkout Informix connector repository
+      uses: actions/checkout@v6
+      with:
+        repository: debezium/debezium-connector-informix
+        ref: ${{ inputs.debezium-db2-ref }}
+        path: ${{ inputs.working-directory }}/debezium-connector-informix
+
     - name: Checkout Quarkus Extensions repository
       uses: actions/checkout@v6
       with:
@@ -89,13 +96,14 @@ runs:
         CORE_HASH=${{ hashFiles(format('./{0}/core/**/pom.xml', inputs.working-directory)) }}
         OPERATOR_HASH=${{ hashFiles(format('./{0}/operator/**/pom.xml', inputs.working-directory)) }}
         DB2_HASH=${{ hashFiles(format('./{0}/debezium-connector-db2/**/pom.xml', inputs.working-directory)) }}
+        INFORMIX_HASH=${{ hashFiles(format('./{0}/debezium-connector-informix/**/pom.xml', inputs.working-directory)) }}
         QUARKUS_HASH=${{ hashFiles(format('./{0}/debezium-quarkus/**/pom.xml', inputs.working-directory)) }}
 
         # Differentiate between PR and push caches (like debezium CI does)
         if [ "${{ inputs.github-event-name }}" = "push" ]; then
-          echo "cache_key=maven-debezium-platform-conductor-push-${CORE_HASH}-${OPERATOR_HASH}-${DB2_HASH}-${QUARKUS_HASH}" >> "$GITHUB_OUTPUT"
+          echo "cache_key=maven-debezium-platform-conductor-push-${CORE_HASH}-${OPERATOR_HASH}-${DB2_HASH}-${INFORMIX_HASH}-${QUARKUS_HASH}" >> "$GITHUB_OUTPUT"
         else
-          echo "cache_key=maven-debezium-platform-conductor-${CORE_HASH}-${OPERATOR_HASH}-${DB2_HASH}-${QUARKUS_HASH}" >> "$GITHUB_OUTPUT"
+          echo "cache_key=maven-debezium-platform-conductor-${CORE_HASH}-${OPERATOR_HASH}-${DB2_HASH}-${INFORMIX_HASH}-${QUARKUS_HASH}" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Restore Maven cache
@@ -132,7 +140,7 @@ runs:
           -Dstyle.color=always \
           --no-transfer-progress
 
-    - name: Maven build operator, DB2, and Quarkus dependencies
+    - name: Maven build operator, DB2, Informix, and Quarkus dependencies
       if: ${{ steps.cache-check.outputs.cache-hit != 'true' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
@@ -150,6 +158,18 @@ runs:
           --no-transfer-progress
 
         ./debezium-connector-db2/mvnw clean install -f debezium-connector-db2/pom.xml \
+          -DskipTests \
+          -DskipITs \
+          -Dformat.skip=true \
+          -Dcheckstyle.skip=true \
+          -Dhttp.keepAlive=false \
+          -Dmaven.wagon.http.pool=false \
+          -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
+          -Dmaven.javadoc.skip=true \
+          -Dstyle.color=always \
+          --no-transfer-progress
+        
+        ./debezium-connector-informix/mvnw clean install -f debezium-connector-informix/pom.xml \
           -DskipTests \
           -DskipITs \
           -Dformat.skip=true \
