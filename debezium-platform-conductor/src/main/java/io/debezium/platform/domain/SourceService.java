@@ -36,13 +36,18 @@ public class SourceService extends AbstractService<SourceEntity, Source, SourceR
 
     private static final String SIGNAL_DATA_COLLECTION_CONFIGURED_MESSAGE = "Signal data collection correctly configured";
     private static final String SIGNAL_DATA_COLLECTION_MISS_CONFIGURED_MESSAGE = "Signal data collection not present or misconfigured";
+    public static final String SOURCE_REFERENCE_ATTRIBUTE = "source";
 
+    private final PipelineService pipelineService;
     private final SignalDataCollectionChecker signalDataCollectionChecker;
     private final DatabaseConnectionFactory databaseConnectionFactory;
 
-    public SourceService(EntityManager em, CriteriaBuilderFactory cbf, EntityViewManager evm, SignalDataCollectionChecker signalDataCollectionChecker,
+    public SourceService(EntityManager em, CriteriaBuilderFactory cbf, EntityViewManager evm,
+                         PipelineService pipelineService,
+                         SignalDataCollectionChecker signalDataCollectionChecker,
                          DatabaseConnectionFactory databaseConnectionFactory) {
         super(SourceEntity.class, Source.class, SourceReference.class, em, cbf, evm);
+        this.pipelineService = pipelineService;
         this.signalDataCollectionChecker = signalDataCollectionChecker;
         this.databaseConnectionFactory = databaseConnectionFactory;
     }
@@ -51,6 +56,13 @@ public class SourceService extends AbstractService<SourceEntity, Source, SourceR
     public Optional<SourceReference> findReferenceById(Long id) {
         var result = evm.find(em, SourceReference.class, id);
         return Optional.ofNullable(result);
+    }
+
+    @Override
+    @Transactional(Transactional.TxType.REQUIRED)
+    public void onChange(Source source) {
+        pipelineService.findViewByReference(SOURCE_REFERENCE_ATTRIBUTE, source.getId())
+                .forEach(pipelineService::onChange);
     }
 
     public SignalDataCollectionVerifyResponse verifySignalDataCollection(SignalCollectionVerifyRequest signalCollectionVerifyRequest) {

@@ -512,6 +512,11 @@
         </dependency>
 
         <dependency>
+            <groupId>io.nats</groupId>
+            <artifactId>jnats</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.quarkiverse.oras</groupId>
             <artifactId>quarkus-oras</artifactId>
         </dependency>
@@ -634,8 +639,10 @@
         </dependency>
 
         <dependency>
-            <groupId>io.nats</groupId>
-            <artifactId>jnats</artifactId>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-util</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

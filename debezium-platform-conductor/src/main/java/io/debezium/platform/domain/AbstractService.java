@@ -33,6 +33,8 @@ import io.debezium.platform.error.NotFoundException;
 @Transactional(REQUIRED)
 public class AbstractService<E, T extends IdView, R extends IdView> {
 
+    public static final String ID_ATTRIBUTE = ".id";
+
     EntityManager em;
     CriteriaBuilderFactory cbf;
     EntityViewManager evm;
@@ -80,6 +82,15 @@ public class AbstractService<E, T extends IdView, R extends IdView> {
     }
 
     @Transactional(SUPPORTS)
+    public List<T> findViewByReference(String referenceAttribute, Long referenceId) {
+
+        EntityViewSetting<T, CriteriaBuilder<T>> setting = EntityViewSetting.create(viewType);
+
+        return evm.applySetting(setting,
+                cb().where(referenceAttribute + ID_ATTRIBUTE).eq(referenceId)).getResultList();
+    }
+
+    @Transactional(SUPPORTS)
     public <V> Optional<V> findByIdAs(Class<V> viewType, Long id) {
         var result = evm.find(em, viewType, id);
         return Optional.ofNullable(result);
@@ -116,4 +127,5 @@ public class AbstractService<E, T extends IdView, R extends IdView> {
     public void onChange(Long id) {
         // default no-op
     }
+
 }

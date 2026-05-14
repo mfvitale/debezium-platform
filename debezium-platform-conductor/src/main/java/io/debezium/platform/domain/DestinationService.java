@@ -23,8 +23,20 @@ import io.debezium.platform.domain.views.refs.DestinationReference;
 @ApplicationScoped
 public class DestinationService extends AbstractService<DestinationEntity, Destination, DestinationReference> {
 
-    public DestinationService(EntityManager em, CriteriaBuilderFactory cbf, EntityViewManager evm) {
+    public static final String DESTINATION_REFERENCE_ATTRIBUTE = "destination";
+    private final PipelineService pipelineService;
+
+    public DestinationService(EntityManager em, CriteriaBuilderFactory cbf, EntityViewManager evm,
+                              PipelineService pipelineService) {
         super(DestinationEntity.class, Destination.class, DestinationReference.class, em, cbf, evm);
+        this.pipelineService = pipelineService;
+    }
+
+    @Override
+    @Transactional(Transactional.TxType.REQUIRED)
+    public void onChange(Destination destination) {
+        pipelineService.findViewByReference(DESTINATION_REFERENCE_ATTRIBUTE, destination.getId())
+                .forEach(pipelineService::onChange);
     }
 
     @Transactional(SUPPORTS)
