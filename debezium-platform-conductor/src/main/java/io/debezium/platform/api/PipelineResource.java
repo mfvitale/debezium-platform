@@ -36,6 +36,7 @@ import org.jboss.logging.Logger;
 
 import io.debezium.platform.api.dto.PipelineRequest;
 import io.debezium.platform.api.dto.PipelineResponse;
+import io.debezium.platform.api.dto.PipelineUpdateRequest;
 import io.debezium.platform.api.mapper.PipelineMapper;
 import io.debezium.platform.data.dto.SignalRequest;
 import io.debezium.platform.data.dto.SignalResponse;
@@ -97,10 +98,10 @@ public class PipelineResource {
     @APIResponse(responseCode = "200", content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = PipelineResponse.class, required = true)))
     @PUT
     @Path("/{id}")
-    public Response put(@PathParam("id") Long id, @NotNull @Valid PipelineRequest request) {
+    public Response put(@PathParam("id") Long id, @NotNull @Valid PipelineUpdateRequest request) {
         var view = pipelineService.findById(id)
                 .orElseThrow(() -> new NotFoundException(id));
-        mapper.applyToView(request, view);
+        mapper.applyUpdateToView(request, view);
         var updated = pipelineService.update(view);
         return Response.ok(mapper.toResponse(updated)).build();
     }

@@ -27,6 +27,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
+import io.debezium.doc.FixFor;
 import io.debezium.operator.api.model.DebeziumServer;
 import io.debezium.platform.MockedTestProfile;
 import io.debezium.platform.environment.operator.actions.DebeziumKubernetesAdapter;
@@ -196,10 +197,15 @@ class PipelineResourceIT {
                 .pollDelay(Duration.of(100, ChronoUnit.MILLIS))
                 .pollInterval(Duration.of(500, ChronoUnit.MILLIS))
                 .untilAsserted(() -> {
-                    Mockito.verify(k8sAdapter).deployPipeline(debeziumServerArgumentCaptor.capture());
+                    Mockito.verify(k8sAdapter, Mockito.atLeastOnce()).deployPipeline(debeziumServerArgumentCaptor.capture());
+                    assertThat(debeziumServerArgumentCaptor.getAllValues().stream()
+                            .anyMatch(ds -> ds.getMetadata().getName().equals("test-pipeline"))).isTrue();
                 });
 
-        DebeziumServer debeziumServer = debeziumServerArgumentCaptor.getValue();
+        DebeziumServer debeziumServer = debeziumServerArgumentCaptor.getAllValues().stream()
+                .filter(ds -> ds.getMetadata().getName().equals("test-pipeline"))
+                .findFirst()
+                .orElseThrow();
 
         TestDatasourceHelper dbHelper = TestDatasourceHelper.parsePostgresJdbcUrl(datasourceUrl);
         String expectedJdbcUrl = dbHelper.toJdbcUrl("loggerLevel=OFF");
@@ -385,6 +391,129 @@ class PipelineResourceIT {
                 .when().post("api/pipelines")
                 .then()
                 .statusCode(400);
+    }
+
+    @FixFor("debezium/dbz#1940")
+    @Test
+    @DisplayName("When a pipeline is updated then source and destination must remain unchanged")
+    void updatePipeline() {
+
+        String createBody = """
+                {
+                   "name": "test-pipeline-update",
+                   "description": "Original description",
+                   "source": {
+                     "id": %s,
+                     "name": "test-source-%s"
+                   },
+                   "destination": {
+                     "id": %s,
+                     "name": "test-destination-%s"
+                   },
+                   "transforms": [],
+                   "logLevel": "INFO",
+                   "logLevels": {}
+                 }""".formatted(sourceId, resourceSuffix, destinationId, resourceSuffix);
+
+        Number pipelineId = given()
+                .header("Content-Type", "application/json")
+                .body(createBody).when().post("api/pipelines")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id");
+
+        String updateBody = """
+                {
+                   "name": "test-pipeline-update",
+                   "description": "Updated description",
+                   "transforms": [],
+                   "logLevel": "WARN",
+                   "logLevels": {}
+                 }""";
+
+        given()
+                .header("Content-Type", "application/json")
+                .body(updateBody).when().put("api/pipelines/" + pipelineId)
+                .then()
+                .statusCode(200)
+                .body("description", is("Updated description"))
+                .body("logLevel", is("WARN"))
+                .body("source.id", is(sourceId.intValue()))
+                .body("destination.id", is(destinationId.intValue()));
+    }
+
+    @Test
+    @DisplayName("Updating a non-existent pipeline should return 404")
+    void updatePipelineNotFound() {
+
+        String updateBody = """
+                {
+                   "name": "test-pipeline-update",
+                   "description": "Updated description",
+                   "transforms": [],
+                   "logLevel": "WARN",
+                   "logLevels": {}
+                 }""";
+
+        given()
+                .header("Content-Type", "application/json")
+                .body(updateBody).when().put("api/pipelines/999999")
+                .then()
+                .statusCode(404);
+    }
+
+    @ParameterizedTest(name = "Updating a pipeline without required {0} should return 400")
+    @MethodSource("invalidPipelineUpdateRequests")
+    void rejectPipelineUpdateWithMissingRequiredField(String fieldName, String jsonBody) {
+
+        String pipelineName = "test-pipeline-val-" + fieldName.toLowerCase() + "-" + resourceSuffix;
+        String createBody = """
+                {
+                   "name": "%s",
+                   "description": "Pipeline for validation test",
+                   "source": {
+                     "id": %s,
+                     "name": "test-source-%s"
+                   },
+                   "destination": {
+                     "id": %s,
+                     "name": "test-destination-%s"
+                   },
+                   "transforms": [],
+                   "logLevel": "INFO",
+                   "logLevels": {}
+                 }""".formatted(pipelineName, sourceId, resourceSuffix, destinationId, resourceSuffix);
+
+        Number pipelineId = given()
+                .header("Content-Type", "application/json")
+                .body(createBody).when().post("api/pipelines")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id");
+
+        given()
+                .header("Content-Type", "application/json")
+                .body(jsonBody).when().put("api/pipelines/" + pipelineId)
+                .then()
+                .statusCode(400)
+                .body("title", is("Constraint Violation"))
+                .body("violations.field", hasItem("put.request." + fieldName));
+    }
+
+    static Stream<Arguments> invalidPipelineUpdateRequests() {
+        return Stream.of(
+                Arguments.of("name", """
+                        {
+                        "name": "",
+                        "logLevel": "INFO"
+                        }"""),
+                Arguments.of("logLevel", """
+                        {
+                        "name": "test-pipeline",
+                        "logLevel": ""
+                        }"""));
     }
 
 }
