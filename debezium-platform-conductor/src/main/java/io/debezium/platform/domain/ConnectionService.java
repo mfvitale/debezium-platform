@@ -43,15 +43,22 @@ import io.debezium.platform.error.NotFoundException;
 public class ConnectionService extends AbstractService<ConnectionEntity, Connection, ConnectionReference> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionService.class);
+    public static final String CONNECTION_REFERENCE_ATTRIBUTE = "connection";
 
+    private final SourceService sourceService;
+    private final DestinationService destinationService;
     private final ConnectionValidatorFactory connectionValidatorFactory;
     private final DatabaseInspector databaseInspector;
     private final DatabaseConnectionFactory databaseConnectionFactory;
 
-    public ConnectionService(EntityManager em, CriteriaBuilderFactory cbf, EntityViewManager evm, DatabaseConnectionFactory databaseConnectionFactory,
+    public ConnectionService(EntityManager em, CriteriaBuilderFactory cbf, EntityViewManager evm,
+                             SourceService sourceService, DestinationService destinationService,
+                             DatabaseConnectionFactory databaseConnectionFactory,
                              ConnectionValidatorFactory connectionValidatorFactory, DatabaseInspector databaseInspector) {
         super(ConnectionEntity.class, Connection.class, ConnectionReference.class, em, cbf, evm);
 
+        this.sourceService = sourceService;
+        this.destinationService = destinationService;
         this.connectionValidatorFactory = connectionValidatorFactory;
         this.databaseInspector = databaseInspector;
         this.databaseConnectionFactory = databaseConnectionFactory;
@@ -61,6 +68,15 @@ public class ConnectionService extends AbstractService<ConnectionEntity, Connect
     public Optional<ConnectionReference> findReferenceById(Long id) {
         var result = evm.find(em, ConnectionReference.class, id);
         return Optional.ofNullable(result);
+    }
+
+    @Override
+    @Transactional(Transactional.TxType.REQUIRED)
+    public void onChange(Connection connection) {
+        sourceService.findViewByReference(CONNECTION_REFERENCE_ATTRIBUTE, connection.getId())
+                .forEach(sourceService::onChange);
+        destinationService.findViewByReference(CONNECTION_REFERENCE_ATTRIBUTE, connection.getId())
+                .forEach(destinationService::onChange);
     }
 
     public ConnectionValidationResult validateConnection(@NotNull @Valid Connection connection) {

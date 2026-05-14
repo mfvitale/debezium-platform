@@ -23,8 +23,20 @@ import io.debezium.platform.domain.views.refs.TransformReference;
 @ApplicationScoped
 public class TransformService extends AbstractService<TransformEntity, Transform, TransformReference> {
 
-    public TransformService(EntityManager em, CriteriaBuilderFactory cbf, EntityViewManager evm) {
+    public static final String TRANSFORMS_REFERENCE_ATTRIBUTE = "transforms";
+    private final PipelineService pipelineService;
+
+    public TransformService(EntityManager em, CriteriaBuilderFactory cbf, EntityViewManager evm,
+                            PipelineService pipelineService) {
         super(TransformEntity.class, Transform.class, TransformReference.class, em, cbf, evm);
+        this.pipelineService = pipelineService;
+    }
+
+    @Override
+    @Transactional(Transactional.TxType.REQUIRED)
+    public void onChange(Transform transform) {
+        pipelineService.findViewByReference(TRANSFORMS_REFERENCE_ATTRIBUTE, transform.getId())
+                .forEach(pipelineService::onChange);
     }
 
     @Transactional(SUPPORTS)
