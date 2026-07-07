@@ -209,6 +209,42 @@ tests:
             name: MONITORING_PROMETHEUS_URL
             value: "http://prometheus:9090"
 
+  - it: should inject OTel interval env vars with default values when monitoring.otel.enabled is true
+    template: conductor-deployment.yaml
+    set:
+      monitoring.otel.enabled: true
+      monitoring.prometheus.url: "http://prometheus:9090"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PIPELINE_MONITORING_OTEL_JMX_INTERVAL_MS
+            value: "1000"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PIPELINE_MONITORING_OTEL_METRIC_EXPORT_INTERVAL_MS
+            value: "5000"
+
+  - it: should inject custom OTel interval env vars when overridden
+    template: conductor-deployment.yaml
+    set:
+      monitoring.otel.enabled: true
+      monitoring.otel.jmxIntervalMs: 2000
+      monitoring.otel.metricExportIntervalMs: 10000
+      monitoring.prometheus.url: "http://prometheus:9090"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PIPELINE_MONITORING_OTEL_JMX_INTERVAL_MS
+            value: "2000"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PIPELINE_MONITORING_OTEL_METRIC_EXPORT_INTERVAL_MS
+            value: "10000"
+
   - it: should not inject monitoring env vars when monitoring.otel.enabled is false
     template: conductor-deployment.yaml
     set:
@@ -223,6 +259,16 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: PIPELINE_MONITORING_OTEL_ENDPOINT
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PIPELINE_MONITORING_OTEL_JMX_INTERVAL_MS
+          any: true
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: PIPELINE_MONITORING_OTEL_METRIC_EXPORT_INTERVAL_MS
           any: true
       - notContains:
           path: spec.template.spec.containers[0].env

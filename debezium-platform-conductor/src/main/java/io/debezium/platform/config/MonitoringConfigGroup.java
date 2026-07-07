@@ -7,6 +7,9 @@ package io.debezium.platform.config;
 
 import java.util.Optional;
 
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+
 /**
  * Configuration group for monitoring and observability features.
  * <p>
@@ -51,5 +54,23 @@ public interface MonitoringConfigGroup {
          * @return an {@link Optional} containing the endpoint URL if configured, or empty if not set
          */
         Optional<String> endpoint();
+
+        /**
+         * Returns the interval in milliseconds at which the OTel JMX agent scrapes MBeans.
+         *
+         * @return the JMX scrape interval in milliseconds
+         */
+        @WithDefault("1000")
+        @WithName("jmx-interval-ms")
+        int jmxIntervalMs();
+
+        /**
+         * Returns the interval in milliseconds at which the OTel SDK exports metrics via OTLP.
+         *
+         * @return the metric export interval in milliseconds
+         */
+        @WithDefault("5000")
+        @WithName("metric-export-interval-ms")
+        int metricExportIntervalMs();
     }
 }
