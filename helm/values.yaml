@@ -60,6 +60,8 @@ pipeline:
 monitoring:
   otel:
     enabled: false
+    jmxIntervalMs: 1000
+    metricExportIntervalMs: 5000
     collector:
       # The Prometheus exporter is included in the base (otelcol) and contrib distributions,
       # but NOT in the k8s distribution (otelcol-k8s) which is the default when the OTel Operator
@@ -84,6 +86,7 @@ monitoring:
             platform: debezium
   panels:
     additionalPanelsPath: ""
+    refreshInterval: 30s
   prometheus:
     url: ""
     serviceMonitor:

@@ -57,6 +57,8 @@ public class PipelineMapperTest {
         when(tableNameResolver.resolve(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         when(pipelineConfigGroup.labels()).thenReturn(Map.of());
         when(pipelineConfigGroup.monitoring().otel().enabled()).thenReturn(false);
+        when(pipelineConfigGroup.monitoring().otel().jmxIntervalMs()).thenReturn(1000);
+        when(pipelineConfigGroup.monitoring().otel().metricExportIntervalMs()).thenReturn(5000);
 
         pipelineMapper = createMapper();
     }
@@ -189,6 +191,39 @@ public class PipelineMapperTest {
         var otel = result.getSpec().getRuntime().getMetrics().getOpenTelemetry();
         assertThat(otel.isEnabled()).isTrue();
         assertThat(otel.getCollector().getEndpoint()).isNull();
+    }
+
+    @Test
+    @FixFor("debezium/dbz#2168")
+    public void testMapper_ShouldSetOtelIntervalsOnCollectorWhenEnabled() {
+        when(pipelineConfigGroup.monitoring().otel().enabled()).thenReturn(true);
+        when(pipelineConfigGroup.monitoring().otel().endpoint()).thenReturn(Optional.of("http://otel-collector:4318"));
+        when(pipelineConfigGroup.monitoring().otel().jmxIntervalMs()).thenReturn(2000);
+        when(pipelineConfigGroup.monitoring().otel().metricExportIntervalMs()).thenReturn(10000);
+        pipelineMapper = createMapper();
+
+        var pipeline = mockPipelineWithSource(ConnectionEntity.Type.POSTGRESQL, Map.of(
+                DATABASE, "customers",
+                USERNAME, "sa"));
+
+        var result = pipelineMapper.map(pipeline);
+
+        var collector = result.getSpec().getRuntime().getMetrics().getOpenTelemetry().getCollector();
+        assertThat(collector.getJmxIntervalMs()).isEqualTo(2000);
+        assertThat(collector.getMetricExportIntervalMs()).isEqualTo(10000);
+    }
+
+    @Test
+    @FixFor("debezium/dbz#2168")
+    public void testMapper_ShouldNotSetOtelIntervalsWhenDisabled() {
+        var pipeline = mockPipelineWithSource(ConnectionEntity.Type.POSTGRESQL, Map.of(
+                DATABASE, "customers",
+                USERNAME, "sa"));
+
+        var result = pipelineMapper.map(pipeline);
+
+        var otel = result.getSpec().getRuntime().getMetrics().getOpenTelemetry();
+        assertThat(otel.isEnabled()).isFalse();
     }
 
     @Test

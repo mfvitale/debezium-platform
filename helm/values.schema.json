@@ -319,6 +319,11 @@
                             "type": "string",
                             "default": "",
                             "description": "Path to a YAML file with additional monitoring panels. Panels defined here are merged with the built-in panels; panels with matching IDs override the built-in defaults."
+                        },
+                        "refreshInterval": {
+                            "type": "string",
+                            "default": "30s",
+                            "description": "How often the conductor reloads panels from the additional panels file. Accepts duration strings (e.g. 1s, 30s, 5m)."
                         }
                     }
                 },

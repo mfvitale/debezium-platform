@@ -27,15 +27,19 @@ public class OpenTelemetryExporterStrategy implements MetricsExporterStrategy {
 
     @Override
     public void apply(MetricsBuilder metricsBuilder, PipelineConfigGroup config) {
-        var otelBuilder = new OpenTelemetryBuilder()
-                .withEnabled();
+        var otelConfig = config.monitoring().otel();
 
-        config.monitoring().otel().endpoint()
+        var collectorBuilder = new OtelCollectorBuilder()
+                .withJmxIntervalMs(otelConfig.jmxIntervalMs())
+                .withMetricExportIntervalMs(otelConfig.metricExportIntervalMs());
+
+        otelConfig.endpoint()
                 .filter(e -> !e.isBlank())
-                .ifPresent(endpoint -> otelBuilder.withCollector(
-                        new OtelCollectorBuilder()
-                                .withEndpoint(endpoint)
-                                .build()));
+                .ifPresent(collectorBuilder::withEndpoint);
+
+        var otelBuilder = new OpenTelemetryBuilder()
+                .withEnabled()
+                .withCollector(collectorBuilder.build());
 
         metricsBuilder.withOpenTelemetry(otelBuilder.build());
     }
