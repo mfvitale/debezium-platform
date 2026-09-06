@@ -10,11 +10,8 @@ import io.debezium.platform.domain.HostAllocation;
 /**
  * Abstraction for managing Docker containers on a remote host.
  *
- * <p>The current implementation uses Ansible ad-hoc commands
- * ({@link io.debezium.platform.environment.host.AnsibleContainerRuntime}).
- * When the Host Agent is built (sub-issue 7+), a second implementation
- * will delegate to the agent's REST API — no changes needed in
- * {@link HostPipelineController}.
+ * <p>Implementations include {@link AgentContainerRuntime} (default, REST-based)
+ * and {@link AnsibleContainerRuntime} (fallback, SSH/Ansible-based).
  */
 public interface HostContainerRuntime {
 

@@ -207,6 +207,27 @@ public class HostDeploymentService extends AbstractService<HostDeploymentEntity,
     }
 
     /**
+     * Finds a deployment by its Docker container name.
+     *
+     * <p>Used by {@link io.debezium.platform.environment.host.AgentContainerRuntime}
+     * to resolve the host's Agent connection details (hostname, port, token)
+     * when the {@link HostContainerRuntime} interface only provides the
+     * container name string.
+     *
+     * @return the deployment, or {@code null} if not found
+     */
+    @Transactional(SUPPORTS)
+    public HostDeployment findByContainerName(String containerName) {
+        return evm.applySetting(
+                EntityViewSetting.create(HostDeployment.class),
+                cb().where("containerName").eq(containerName))
+                .getResultList()
+                .stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * Returns all deployments matching any of the given statuses.
      */
     @Transactional(SUPPORTS)

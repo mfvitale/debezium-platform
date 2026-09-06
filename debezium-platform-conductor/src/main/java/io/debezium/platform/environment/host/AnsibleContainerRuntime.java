@@ -22,9 +22,10 @@ import io.debezium.platform.environment.host.provisioning.CommandResult;
  * commands executed via SSH. Each method delegates to
  * {@link AnsibleCommandRunner} for the actual process invocation.
  *
- * <p>When the Host Agent replaces Ansible (sub-issue 7+), a new
- * implementation will call the agent's REST API instead.
+ * <p>Superceded by {@link AgentContainerRuntime} as the default runtime
+ * implementation, but retained for fallback and reference purposes.
  */
+
 @ApplicationScoped
 public class AnsibleContainerRuntime implements HostContainerRuntime {
 
