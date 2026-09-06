@@ -146,14 +146,27 @@
         groups: docker
         append: true
 
-    # NOTE: The Host Agent binary is built by an upcoming feature and is not
-    # yet available. This task creates the systemd service file pointing to
-    # the documented artifact path. The actual binary copy task will be
-    # added once that feature lands.
+    # The Host Agent is packaged as a runnable JAR (Quarkus application).
+    # Executing the JAR via systemd requires a Java Runtime Environment (JRE)
+    # on the host machine. On Debian/Ubuntu we install 'default-jre-headless',
+    # and on RHEL/CentOS/Fedora we install 'java-headless'.
+    - name: Install Java Runtime Environment
+      ansible.builtin.package:
+        name: "{{ 'default-jre-headless' if ansible_facts['os_family'] == 'Debian' else 'java-headless' }}"
+        state: present
+      tags: [host_agent]
+
     - name: Create Host Agent directory
       ansible.builtin.file:
         path: /opt/debezium/agent
         state: directory
+        mode: "0755"
+      tags: [host_agent]
+
+    - name: Copy Host Agent binary JAR
+      ansible.builtin.copy:
+        src: "{{ agent_binary_path | default(playbook_dir + '/../../../../debezium-platform-host-agent/target/debezium-host-agent-runner.jar') }}"
+        dest: /opt/debezium/agent/debezium-host-agent-runner.jar
         mode: "0755"
       tags: [host_agent]
 

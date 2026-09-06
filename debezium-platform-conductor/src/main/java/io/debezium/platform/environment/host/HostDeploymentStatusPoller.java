@@ -14,13 +14,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
+import io.debezium.DebeziumException;
 import io.debezium.platform.data.model.DeploymentStatus;
 import io.debezium.platform.domain.HostDeploymentService;
 import io.debezium.platform.domain.views.HostDeployment;
+import io.debezium.platform.environment.host.agent.AgentContainerStatus;
+import io.debezium.platform.environment.host.agent.HostAgentClient;
 import io.debezium.platform.environment.host.config.HostConfigGroup;
-import io.debezium.platform.environment.host.provisioning.AnsibleCommandException;
-import io.debezium.platform.environment.host.provisioning.AnsibleCommandRunner;
-import io.debezium.platform.environment.host.provisioning.CommandResult;
 import io.debezium.util.DelayStrategy;
 import io.debezium.util.RetryingRunnable;
 import io.quarkus.scheduler.Scheduled;
@@ -30,7 +30,8 @@ import io.quarkus.scheduler.Scheduled;
  *
  * <p>Wakes up at a configurable interval (default 30 seconds) and inspects
  * every deployment in {@code DEPLOYING} or {@code RUNNING} state. Uses
- * Ansible ad-hoc commands to run {@code docker inspect} on the remote host.
+ * the remote Host Agent's {@code GET /api/agent/status/{name}} endpoint
+ * to query container state and config hash.
  *
  * <p><strong>State transitions:</strong>
  * <ul>
@@ -40,11 +41,11 @@ import io.quarkus.scheduler.Scheduled;
  *   <li>{@code RUNNING → CONFIG_DRIFT} — config hash mismatch detected</li>
  * </ul>
  *
- * <p><strong>Retry behaviour:</strong> The {@code docker inspect} call is
- * wrapped in {@link RetryingRunnable} to tolerate transient SSH/network
- * failures. Only {@link AnsibleCommandException} (connectivity failures)
- * is retried — a definitive "no such object" response from {@code docker inspect}
- * is trusted immediately.
+ * <p><strong>Retry behaviour:</strong> The Agent REST call is
+ * wrapped in {@link RetryingRunnable} to tolerate transient HTTP
+ * connectivity failures. Only {@link DebeziumException} (connectivity failures)
+ * is retried — a definitive 404 (container not found) or 200 with
+ * {@code running=false} is trusted immediately.
  *
  * <p>Includes a deployment-mode guard to prevent this poller from firing
  * in operator (Kubernetes) mode — {@code @Scheduled} ignores
@@ -52,12 +53,11 @@ import io.quarkus.scheduler.Scheduled;
  *
  * @see HostPipelineController
  * @see HostDeploymentService
+ *
+ * @author Divyanshu Kumar Nayak
  */
 @ApplicationScoped
 public class HostDeploymentStatusPoller {
-
-    private static final String DOCKER_INSPECT_FORMAT = "docker inspect --format '{%% raw %%}{{.State.Running}}{%% endraw %%}' %s";
-    private static final String CONTAINER_RUNNING_VALUE = "true";
 
     /**
      * Grace period after a deployment is created before the poller will
@@ -66,34 +66,20 @@ public class HostDeploymentStatusPoller {
      */
     private static final Duration DEPLOY_GRACE_PERIOD = Duration.ofMinutes(5);
 
-    /**
-     * Substrings in Ansible/Docker failure output that indicate the container
-     * genuinely does not exist — as opposed to a transient connectivity issue.
-     * When the output matches one of these, the failure is <em>definitive</em>
-     * and should not be retried.
-     */
-    private static final List<String> CONTAINER_NOT_FOUND_MARKERS = List.of(
-            "no such object",
-            "no such container");
-
-    /** Remote path format for the deployed config file (matches HostPipelineController). */
-    private static final String CONFIG_PATH_FORMAT = "%s/%s/application.properties";
-    private static final String HASH_COMMAND_FORMAT = "sha256sum %s | awk '{print $1}'";
-
     private final Logger logger;
     private final HostDeploymentService deploymentService;
-    private final AnsibleCommandRunner ansibleRunner;
+    private final HostAgentClient agentClient;
     private final HostConfigGroup hostConfig;
     private final String deploymentMode;
 
     public HostDeploymentStatusPoller(Logger logger,
                                       HostDeploymentService deploymentService,
-                                      AnsibleCommandRunner ansibleRunner,
+                                      HostAgentClient agentClient,
                                       HostConfigGroup hostConfig,
                                       @ConfigProperty(name = "platform.deployment.mode", defaultValue = "operator") String deploymentMode) {
         this.logger = logger;
         this.deploymentService = deploymentService;
-        this.ansibleRunner = ansibleRunner;
+        this.agentClient = agentClient;
         this.hostConfig = hostConfig;
         this.deploymentMode = deploymentMode;
     }
@@ -121,14 +107,20 @@ public class HostDeploymentStatusPoller {
     }
 
     private void checkDeployment(HostDeployment deployment) {
-        String sshAlias = deployment.getSshAlias();
+        String hostname = deployment.getHostname();
+        int agentPort = deployment.getAgentPort();
+        String agentToken = deployment.getAgentToken();
         String containerName = deployment.getContainerName();
         Long deploymentId = deployment.getId();
 
         try {
-            boolean containerRunning = inspectContainerRunningWithRetry(sshAlias, containerName);
+            AgentContainerStatus status = queryStatusWithRetry(
+                    hostname, agentPort, agentToken, containerName);
 
             DeploymentStatus currentStatus = deployment.getDeploymentStatus();
+
+            // status == null means 404 (container not found / was removed)
+            boolean containerRunning = status != null && status.running();
 
             if (containerRunning && currentStatus == DeploymentStatus.DEPLOYING) {
                 deploymentService.updateStatus(deploymentId, DeploymentStatus.RUNNING);
@@ -139,65 +131,69 @@ public class HostDeploymentStatusPoller {
                 Instant deployedAt = deployment.getDeployedAt();
                 if (deployedAt != null && Duration.between(deployedAt, Instant.now()).compareTo(DEPLOY_GRACE_PERIOD) < 0) {
                     logger.debugv("Container {0} on {1} is not running yet, but still within grace period — skipping",
-                            containerName, sshAlias);
+                            containerName, hostname);
                     return;
                 }
                 logger.warnv("Container {0} on {1} is not running after deploy (grace period elapsed), marking FAILED",
-                        containerName, sshAlias);
+                        containerName, hostname);
                 deploymentService.updateStatus(deploymentId, DeploymentStatus.FAILED);
                 return;
             }
 
             if (!containerRunning && currentStatus == DeploymentStatus.RUNNING) {
                 logger.warnv("Container {0} on {1} stopped unexpectedly, marking FAILED",
-                        containerName, sshAlias);
+                        containerName, hostname);
                 deploymentService.updateStatus(deploymentId, DeploymentStatus.FAILED);
                 return;
             }
 
             if (containerRunning && currentStatus == DeploymentStatus.RUNNING) {
-                checkConfigDrift(deployment, sshAlias);
+                checkConfigDrift(deployment, status);
             }
         }
-        catch (AnsibleCommandException e) {
-            // All retries exhausted for a transient SSH/connectivity failure.
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        catch (DebeziumException e) {
+            // All retries exhausted for a transient connectivity failure.
             // The container's actual state is unknown — skip this cycle rather
             // than incorrectly marking FAILED.
-            logger.warnv("All inspect retries exhausted for deployment {0} on {1}, "
-                    + "skipping this cycle: {2}", deploymentId, sshAlias, e.getMessage());
+            logger.warnv("All status retries exhausted for deployment {0} on {1}, "
+                    + "skipping this cycle: {2}", deploymentId, hostname, e.getMessage());
         }
         catch (Exception e) {
             logger.errorv(e, "Error polling deployment {0} on {1}, skipping this cycle",
-                    deploymentId, sshAlias);
+                    deploymentId, hostname);
         }
     }
 
     /**
-     * Wraps {@link #inspectContainerRunning(String, String)} with
-     * {@link RetryingRunnable} to tolerate transient SSH/Ansible failures.
+     * Wraps {@link HostAgentClient#status} with
+     * {@link RetryingRunnable} to tolerate transient HTTP failures.
      *
-     * <p>Only {@link AnsibleCommandException} is retried — this means:
+     * <p>Only {@link DebeziumException} is retried — this means:
      * <ul>
-     *   <li>A successful inspect returning {@code "false"} (container genuinely
-     *       stopped) is trusted immediately — no retry, mark FAILED right away.</li>
-     *   <li>A definitive "No such object" failure is also trusted immediately
-     *       (returns {@code false}, not retried).</li>
-     *   <li>A transient SSH timeout is retried up to N times with exponential backoff.</li>
+     *   <li>A successful 200 with {@code running=false} (container genuinely
+     *       stopped) is trusted immediately — no retry.</li>
+     *   <li>A 404 (container not found) is also trusted immediately
+     *       (returns {@code null}, not retried).</li>
+     *   <li>A transient HTTP connection failure is retried up to N times
+     *       with exponential backoff.</li>
      * </ul>
      *
-     * @return {@code true} if the container is confirmed running,
-     *         {@code false} if the container is definitively not running
-     * @throws AnsibleCommandException if all retries are exhausted
+     * @return the container status, or {@code null} if the container doesn't exist
+     * @throws DebeziumException if all retries are exhausted
      */
-    private boolean inspectContainerRunningWithRetry(String sshAlias, String containerName)
-            throws AnsibleCommandException, InterruptedException {
-        boolean[] result = { false };
+    private AgentContainerStatus queryStatusWithRetry(String hostname, int agentPort,
+                                                      String agentToken, String containerName)
+            throws DebeziumException, InterruptedException {
+        AgentContainerStatus[] result = { null };
 
         RetryingRunnable.<RuntimeException> builder()
                 .retries(hostConfig.statusPollMaxRetries())
-                .doRun(() -> result[0] = inspectContainerRunning(sshAlias, containerName))
+                .doRun(() -> result[0] = agentClient.status(hostname, agentPort, agentToken, containerName))
                 .delayStrategy(DelayStrategy.exponential(Duration.ofSeconds(1), Duration.ofSeconds(8)))
-                .retriableExceptions(AnsibleCommandException.class)
+                .retriableExceptions(DebeziumException.class)
                 .build()
                 .run();
 
@@ -205,97 +201,25 @@ public class HostDeploymentStatusPoller {
     }
 
     /**
-     * Runs {@code docker inspect} on the remote host and interprets the result.
-     *
-     * <p>Three possible outcomes:
-     * <ol>
-     *   <li><strong>Success + "true":</strong> container is running → returns {@code true}</li>
-     *   <li><strong>Success + "false" / Failure with "no such object":</strong>
-     *       container is definitively not running → returns {@code false}</li>
-     *   <li><strong>Failure (transient):</strong> SSH timeout, network unreachable,
-     *       etc. → throws {@link AnsibleCommandException} (will be retried by
-     *       {@link RetryingRunnable})</li>
-     * </ol>
-     *
-     * @throws AnsibleCommandException if the Ansible command failed due to a
-     *         transient connectivity issue (not a definitive "container not found")
+     * Checks for config drift using the hash returned by the Agent's
+     * status endpoint, rather than running a separate Ansible command.
      */
-    boolean inspectContainerRunning(String sshAlias, String containerName) {
-        String inspectCommand = String.format(DOCKER_INSPECT_FORMAT, containerName);
-        CommandResult result = ansibleRunner.runShellCommand(sshAlias, inspectCommand);
+    private void checkConfigDrift(HostDeployment deployment, AgentContainerStatus status) {
+        String remoteHash = status.configHash();
+        String expectedHash = deployment.getConfigHash();
 
-        return switch (result) {
-            case CommandResult.Success success -> extractLastLine(success.output()).equalsIgnoreCase(CONTAINER_RUNNING_VALUE);
-            case CommandResult.Failure failure -> {
-                if (isContainerNotFound(failure.output())) {
-                    yield false;
-                }
-
-                throw new AnsibleCommandException(
-                        "Transient Ansible failure inspecting container " + containerName
-                                + " on " + sshAlias + ": " + failure.output());
-            }
-        };
-    }
-
-    private static boolean isContainerNotFound(String failureOutput) {
-        if (failureOutput == null) {
-            return false;
+        if (remoteHash == null) {
+            logger.debugv("Agent did not return a config hash for deployment {0}, skipping drift check",
+                    deployment.getId());
+            return;
         }
-        String lowerOutput = failureOutput.toLowerCase();
-        return CONTAINER_NOT_FOUND_MARKERS.stream().anyMatch(lowerOutput::contains);
-    }
 
-    private void checkConfigDrift(HostDeployment deployment, String sshAlias) {
-        String configPath = String.format(CONFIG_PATH_FORMAT,
-                hostConfig.configBasePath(), deployment.getContainerName());
-        String hashCommand = String.format(HASH_COMMAND_FORMAT, configPath);
-
-        CommandResult result = ansibleRunner.runShellCommand(sshAlias, hashCommand);
-
-        if (result instanceof CommandResult.Success success) {
-            String remoteHash = extractLastLine(success.output());
-            String expectedHash = deployment.getConfigHash();
-
-            if (!remoteHash.equals(expectedHash)) {
-                logger.warnv("Config drift detected for deployment {0} on {1}: "
-                        + "expected hash={2}, remote hash={3}",
-                        deployment.getId(), sshAlias, expectedHash, remoteHash);
-                deploymentService.updateStatus(deployment.getId(), DeploymentStatus.CONFIG_DRIFT);
-            }
+        if (!remoteHash.equals(expectedHash)) {
+            logger.warnv("Config drift detected for deployment {0} on {1}: "
+                    + "expected hash={2}, remote hash={3}",
+                    deployment.getId(), deployment.getHostname(), expectedHash, remoteHash);
+            deploymentService.updateStatus(deployment.getId(), DeploymentStatus.CONFIG_DRIFT);
         }
-        else {
-            logger.debugv("Could not read config hash for deployment {0} on {1}, skipping drift check",
-                    deployment.getId(), sshAlias);
-        }
-    }
-
-    /**
-     * Extracts the last non-blank line from Ansible ad-hoc output.
-     *
-     * <p>Ansible ad-hoc commands wrap the remote command's stdout in metadata:
-     * <pre>
-     * [WARNING]: Host 'test-host' is using the discovered Python interpreter...
-     * test-host | CHANGED | rc=0 >>
-     * e1272390382212e4164631eaa80eb72ced68c390887220163f90211cca1c3129
-     * </pre>
-     * The actual command output (in this case the sha256 hash) is always on
-     * the last non-blank line. This method strips all the noise and returns
-     * only that value.
-     */
-    private static String extractLastLine(String output) {
-        if (output == null || output.isBlank()) {
-            return "";
-        }
-        String[] lines = output.trim().split("\\R");
-        // Walk backwards to find the first non-blank line
-        for (int i = lines.length - 1; i >= 0; i--) {
-            String line = lines[i].trim();
-            if (!line.isEmpty()) {
-                return line;
-            }
-        }
-        return "";
     }
 
     private boolean isHostMode() {
