@@ -60,6 +60,8 @@ import io.quarkus.scheduler.Scheduled;
  *   <li>Host in DB, not in file → mark status {@code REMOVED}</li>
  *   <li>Host in both, hostname changed → update entity, re-trigger provisioning</li>
  * </ul>
+ *
+ * @author Divyanshu Kumar Nayak
  */
 @ApplicationScoped
 public class SshConfigWatcherService {

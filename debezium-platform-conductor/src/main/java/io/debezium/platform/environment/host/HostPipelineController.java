@@ -34,10 +34,9 @@ import io.quarkus.runtime.ShutdownEvent;
  * Host-mode implementation of {@link PipelineController}.
  *
  * <p>Orchestrates the full pipeline lifecycle by delegating container
- * operations to {@link HostContainerRuntime}. The current runtime
- * implementation uses Ansible ad-hoc commands; when the Host Agent is
- * built (sub-issue 7+), a new implementation will use REST API calls
- * — no changes needed in this controller.
+ * operations to {@link HostContainerRuntime}. Delegates to the Agent-based
+ * REST implementation ({@link AgentContainerRuntime}), which manages
+ * Docker containers via the remote Host Agent.
  *
  * <p>Operations:
  * <ul>
@@ -50,6 +49,8 @@ import io.quarkus.runtime.ShutdownEvent;
  *
  * <p>Long-running operations are submitted to a dedicated thread pool
  * to avoid blocking the reactive event thread.
+ *
+ *  @author Divyanshu Kumar Nayak
  */
 @ApplicationScoped
 public class HostPipelineController implements PipelineController {
@@ -199,7 +200,7 @@ public class HostPipelineController implements PipelineController {
             logger.infov("Pipeline {0} undeployed from host {1}", pipelineId, sshAlias);
         }
         else {
-            logger.infov("No deployment record found for pipeline {0}, skipping container cleanup", pipelineId);
+            logger.infov("No active deployment record found for pipeline {0} (already undeployed or never deployed)", pipelineId);
         }
     }
 

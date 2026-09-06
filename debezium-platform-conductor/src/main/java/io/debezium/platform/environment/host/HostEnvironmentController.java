@@ -32,6 +32,8 @@ import io.quarkus.arc.lookup.LookupIfProperty;
  * {@code @Scheduled} &mdash; only on {@code Instance<T>.get()}.
  * Without the guard, those methods will fire in operator mode and crash
  * (e.g., trying to watch {@code ~/.ssh/config} inside container).
+ *
+ * @author Divyanshu Kumar Nayak
  */
 @ApplicationScoped
 @LookupIfProperty(name = "platform.deployment.mode", stringValue = "host")
