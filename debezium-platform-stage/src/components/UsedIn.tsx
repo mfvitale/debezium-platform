@@ -115,7 +115,6 @@ const UsedIn: FC<IUsedInProps> = ({
 
     return (
         <Popover
-            triggerAction="hover"
             aria-label="used in popover"
             bodyContent={
                 <div>
