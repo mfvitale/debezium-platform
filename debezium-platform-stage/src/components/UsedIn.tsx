@@ -69,7 +69,7 @@ const UsedIn: FC<IUsedInProps> = ({
     const icon = resourceType === "source" ? <RhUiDataSourceIcon /> : resourceType === "destination" ? <RhUiDataSinkIcon /> : <PipelineIcon />;
     const labelColor = activeCount === 0 ? "grey" : "blue";
     const label = (
-        <Label isDisabled={activeCount === 0} icon={icon} color={labelColor}>
+        <Label isDisabled={activeCount === 0} icon={icon} color={labelColor} style={activeCount > 0 ? {cursor: "pointer"} : undefined}>
             &nbsp;{activeCount}
         </Label>
     );
@@ -115,7 +115,7 @@ const UsedIn: FC<IUsedInProps> = ({
 
     return (
         <Popover
-            aria-label="used in popover"
+            aria-label="Used in popover"
             bodyContent={
                 <div>
                     {t("activeResourceUsingTooltip", {
